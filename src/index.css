@@ -1,0 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-headline: "Manrope", sans-serif;
+
+  --color-primary: #00154d;
+  --color-primary-container: #042879;
+  --color-secondary: #006c49;
+  --color-secondary-fixed-dim: #4edea3;
+  --color-tertiary: #001940;
+  --color-surface: #f7f9fb;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f2f4f6;
+  --color-surface-container: #eceef0;
+  --color-surface-container-high: #e6e8ea;
+  --color-surface-container-highest: #e0e3e5;
+  --color-on-surface: #191c1e;
+  --color-on-surface-variant: #454652;
+  --color-outline-variant: #c6c5d4;
+
+  /* Vibrant Category Colors */
+  --color-ai-purple: #8b5cf6;
+  --color-ai-purple-container: #ede9fe;
+  --color-data-teal: #14b8a6;
+  --color-data-teal-container: #ccfbf1;
+  --color-web-gold: #f59e0b;
+  --color-web-gold-container: #fef3c7;
+
+  /* Premium Gradients */
+  --bg-gradient-ai: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  --bg-gradient-data: linear-gradient(135deg, #14b8a6 0%, #0ea5e9 100%);
+  --bg-gradient-web: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+}
+
+@layer base {
+  body {
+    @apply bg-surface text-on-surface font-sans;
+  }
+}
+
+.glass-effect {
+  @apply bg-white/70 backdrop-blur-xl border border-white/20;
+}
+
+.ghost-border {
+  @apply border border-outline-variant/15;
+}
+
+.card-glow-ai:hover {
+  box-shadow: 0 20px 40px -15px rgba(139, 92, 246, 0.4);
+}
+
+.card-glow-data:hover {
+  box-shadow: 0 20px 40px -15px rgba(20, 184, 166, 0.4);
+}
+
+.card-glow-web:hover {
+  box-shadow: 0 20px 40px -15px rgba(245, 158, 11, 0.4);
+}
+
+.gradient-text-ai {
+  @apply text-transparent bg-clip-text bg-gradient-to-r from-ai-purple to-indigo-500;
+}
+
+.gradient-text-data {
+  @apply text-transparent bg-clip-text bg-gradient-to-r from-data-teal to-sky-500;
+}
+
+.gradient-text-web {
+  @apply text-transparent bg-clip-text bg-gradient-to-r from-web-gold to-orange-500;
+}
