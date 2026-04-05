@@ -176,7 +176,7 @@ export default function Dashboard() {
           <div className="max-w-2xl bg-white p-12 rounded-[2.5rem] border border-outline-variant/10 shadow-sm space-y-8">
             <h2 className="text-2xl font-headline font-bold text-primary">Account Settings</h2>
             <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase text-on-surface-variant">First Name</label>
                   <input defaultValue="Kolawole" className="w-full px-4 py-3 bg-surface-container-low rounded-xl border-none focus:ring-2 focus:ring-primary/20" />

@@ -68,7 +68,7 @@ export default function Home() {
 
       {/* 🔥 VALUE PROPOSITION SECTION */}
       <section className="max-w-7xl mx-auto px-6 py-12">
-        <div className="bg-primary rounded-[2.5rem] p-12 md:p-20 text-white relative overflow-hidden">
+        <div className="bg-primary rounded-[2.5rem] p-8 md:p-12 lg:p-20 text-white relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-secondary/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
           <div className="relative z-10 grid md:grid-cols-2 gap-12 items-center">
             <div>
@@ -94,7 +94,7 @@ export default function Home() {
                 This is where knowledge becomes income.
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10">
                 <TrendingUp size={32} className="text-secondary mb-4" />
                 <h4 className="font-bold text-xl mb-2">Growth</h4>
@@ -240,7 +240,7 @@ export default function Home() {
         >
           <Link 
             to="/courses" 
-            className="group relative inline-flex items-center gap-4 bg-primary text-white px-16 py-6 rounded-[2rem] font-black text-2xl shadow-2xl shadow-primary/40 hover:shadow-primary/60 hover:scale-105 active:scale-95 transition-all overflow-hidden"
+            className="group relative inline-flex items-center gap-4 bg-primary text-white px-8 md:px-16 py-4 md:py-6 rounded-[2rem] font-black text-xl md:text-2xl shadow-2xl shadow-primary/40 hover:shadow-primary/60 hover:scale-105 active:scale-95 transition-all overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
             🚀 Ready to Begin? <ArrowRight size={28} className="group-hover:translate-x-2 transition-transform duration-300" strokeWidth={3} />
@@ -325,7 +325,7 @@ export default function Home() {
 
       {/* 🔗 AFFILIATE / EARNING SYSTEM */}
       <section className="max-w-7xl mx-auto px-6">
-        <div className="bg-secondary rounded-[3rem] p-16 md:p-24 text-white relative overflow-hidden shadow-2xl shadow-secondary/20">
+        <div className="bg-secondary rounded-[3rem] p-8 md:p-16 lg:p-24 text-white relative overflow-hidden shadow-2xl shadow-secondary/20">
           <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
           <div className="absolute bottom-0 left-0 w-96 h-96 bg-black/10 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
           
@@ -462,7 +462,7 @@ export default function Home() {
 
       {/* 🚀 FINAL CTA SECTION */}
       <section className="max-w-7xl mx-auto px-6">
-        <div className="bg-primary rounded-[3rem] p-12 md:p-24 text-center relative overflow-hidden">
+        <div className="bg-primary rounded-[3rem] p-8 md:p-12 lg:p-24 text-center relative overflow-hidden">
           <div className="absolute inset-0 opacity-10 pointer-events-none">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
           </div>

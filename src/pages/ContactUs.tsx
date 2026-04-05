@@ -116,7 +116,7 @@ export default function ContactUs() {
             </div>
 
             <div className="relative">
-               <GlowCard glowColor="orange" className="bg-white p-16 md:p-20 rounded-[4rem] border border-secondary/10 shadow-2xl h-auto relative overflow-hidden">
+               <GlowCard glowColor="orange" className="bg-white p-8 md:p-16 lg:p-20 rounded-[4rem] border border-secondary/10 shadow-2xl h-auto relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-2 h-full bg-secondary" />
                   
                   <div className="space-y-12">
