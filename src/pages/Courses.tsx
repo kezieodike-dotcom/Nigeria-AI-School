@@ -12,7 +12,7 @@ export default function Courses() {
     <div className="max-w-7xl mx-auto px-6 py-12 space-y-16">
       {/* Hero & Search */}
       <section className="space-y-8">
-        <h1 className="text-3xl md:text-6xl font-extrabold font-headline tracking-tight text-primary mb-6">
+        <h1 className="text-5xl md:text-6xl font-extrabold font-headline tracking-tight text-primary mb-6">
           Learn Skills That <span className="text-secondary">Matter.</span>
         </h1>
         <p className="text-on-surface-variant text-lg max-w-2xl mb-10 leading-relaxed">

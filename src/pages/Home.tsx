@@ -19,7 +19,7 @@ export default function Home() {
             transition={{ duration: 0.6 }}
             className="z-10"
           >
-            <h1 className="font-headline font-extrabold text-3xl md:text-7xl text-primary tracking-tight leading-[1.1]">
+            <h1 className="font-headline font-extrabold text-5xl md:text-7xl text-primary tracking-tight leading-[1.1]">
               Learn AI.<br />
               Build Skills.<br />
               <span className="text-secondary">Earn Globally.</span>
@@ -126,7 +126,7 @@ export default function Home() {
           <p className="text-on-surface-variant max-w-2xl mx-auto text-lg md:text-xl font-medium opacity-80 leading-relaxed">Three simple steps to build your technical arsenal and join the global AI economy.</p>
         </div>
         
-        <div className="grid grid-cols-3 gap-4 md:gap-12 lg:gap-16 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16">
           {[
             {
               title: "Learn",
@@ -181,7 +181,7 @@ export default function Home() {
                 glowColor={step.glow}
                 customSize={true}
                 className={cn(
-                  "text-center p-4 md:p-12 rounded-3xl md:rounded-[3.5rem] bg-white border shadow-2xl transition-all duration-500 h-full z-10 relative overflow-hidden",
+                  "text-center p-8 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] bg-white border shadow-2xl transition-all duration-500 h-auto z-10 relative overflow-hidden",
                   step.border
                 )}
               >
@@ -192,39 +192,39 @@ export default function Home() {
                 )} />
 
                 <div className={cn(
-                  "w-12 h-12 md:w-24 md:h-24 rounded-2xl md:rounded-[2.5rem] flex items-center justify-center mx-auto mb-4 md:mb-10 transition-all duration-700 group-hover:shadow-2xl group-hover:scale-110 group-hover:rotate-12 relative z-10",
+                  "w-20 h-20 md:w-24 md:h-24 rounded-3xl md:rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 md:mb-10 transition-all duration-700 group-hover:shadow-2xl group-hover:scale-110 group-hover:rotate-12 relative z-10",
                   step.accent,
                   step.shadow
                 )}>
-                  <div className="absolute inset-0 bg-white/20 rounded-2xl md:rounded-[2.5rem] animate-pulse" />
-                  <step.icon size={24} className="text-white drop-shadow-xl relative z-20 md:w-12 md:h-12" strokeWidth={2.5} />
+                  <div className="absolute inset-0 bg-white/20 rounded-3xl md:rounded-[2.5rem] animate-pulse" />
+                  <step.icon size={40} className="text-white drop-shadow-xl relative z-20 md:w-12 md:h-12" strokeWidth={2.5} />
                 </div>
                 
                 <div className="space-y-6 relative z-10">
-                  <div className="flex items-center justify-center gap-1.5 md:gap-3">
-                    <div className={cn("h-px w-2 md:w-8 bg-gradient-to-r from-transparent", step.gradient)} />
-                    <h3 className={cn("font-headline font-black text-xs sm:text-sm md:text-4xl bg-clip-text text-transparent bg-gradient-to-br tracking-tight", step.gradient)}>
+                  <div className="flex items-center justify-center gap-3">
+                    <div className={cn("h-px w-8 bg-gradient-to-r from-transparent", step.gradient)} />
+                    <h3 className={cn("font-headline font-black text-4xl bg-clip-text text-transparent bg-gradient-to-br tracking-tight", step.gradient)}>
                       {step.title}
                     </h3>
-                    <div className={cn("h-px w-2 md:w-8 bg-gradient-to-l from-transparent", step.gradient)} />
+                    <div className={cn("h-px w-8 bg-gradient-to-l from-transparent", step.gradient)} />
                   </div>
                   
-                  <p className="text-on-surface-variant leading-relaxed text-[10px] md:text-lg font-bold opacity-75 min-h-[4rem] md:min-h-[5rem]">
+                  <p className="text-on-surface-variant leading-relaxed text-base md:text-lg font-bold opacity-75 min-h-[4rem] md:min-h-[5rem]">
                     {step.desc}
                   </p>
                   
-                  <div className="pt-2 md:pt-4 flex justify-center">
+                  <div className="pt-4 flex justify-center">
                     <Link 
                       to={`/how-it-works#${step.title.toLowerCase()}`}
-                      className={cn("flex items-center gap-1 md:gap-2 font-black text-[8px] md:text-sm uppercase tracking-widest cursor-pointer hover:translate-x-2 transition-transform", `text-${step.glow}-600`)}
+                      className={cn("flex items-center gap-2 font-black text-sm uppercase tracking-widest cursor-pointer hover:translate-x-2 transition-transform", `text-${step.glow}-600`)}
                     >
-                      Learn More <ChevronRight size={10} strokeWidth={3} className="md:w-[18px] md:h-[18px]" />
+                      Learn More <ChevronRight size={18} strokeWidth={3} />
                     </Link>
                   </div>
                 </div>
 
                 {/* Numbering Badge */}
-                <div className="absolute bottom-2 md:bottom-6 right-4 md:right-8 text-3xl md:text-8xl font-black opacity-[0.03] group-hover:opacity-[0.07] transition-opacity pointer-events-none select-none">
+                <div className="absolute bottom-6 right-8 text-8xl font-black opacity-[0.03] group-hover:opacity-[0.07] transition-opacity pointer-events-none select-none">
                   0{i + 1}
                 </div>
               </GlowCard>

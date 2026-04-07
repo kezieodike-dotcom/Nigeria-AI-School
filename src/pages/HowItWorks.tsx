@@ -98,7 +98,7 @@ export default function HowItWorks() {
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="font-headline font-black text-3xl md:text-7xl text-white mb-8 tracking-tight"
+            className="font-headline font-black text-5xl md:text-7xl text-white mb-8 tracking-tight"
           >
             How the <span className="text-secondary">AI Economy</span> Works.
           </motion.h1>

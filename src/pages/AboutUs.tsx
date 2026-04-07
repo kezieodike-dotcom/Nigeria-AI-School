@@ -53,7 +53,7 @@ export default function AboutUs() {
             <Target size={14} className="text-secondary" />
             OUR MISSION & VISION
           </motion.div>
-          <h1 className="font-headline font-black text-3xl md:text-8xl text-white mb-8 tracking-tight leading-[1.05]">
+          <h1 className="font-headline font-black text-5xl md:text-8xl text-white mb-8 tracking-tight leading-[1.05]">
             Bridging the Gap<br />
             <span className="text-secondary">Between AI & Africa.</span>
           </h1>
