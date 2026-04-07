@@ -382,49 +382,6 @@ export default function Home() {
         </p>
       </section>
 
-      {/* 🧠 AI EDGE SECTION */}
-      <section className="bg-primary py-24 text-white overflow-hidden relative">
-        <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <div className="grid md:grid-cols-2 gap-16 items-center">
-            <div>
-              <h2 className="font-headline font-bold text-3xl md:text-5xl mb-8">Powered by Intelligence</h2>
-              <p className="text-white/70 text-lg md:text-xl mb-12 leading-relaxed">
-                Our platform doesn’t just host courses — it guides your growth.
-              </p>
-              <div className="space-y-8">
-                {[
-                  { title: "Smart course recommendations", icon: Zap },
-                  { title: "Personalized learning paths", icon: TrendingUp },
-                  { title: "Intelligent insights to help you grow faster", icon: ShieldCheck }
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-6 group">
-                    <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-white transition-all">
-                      <item.icon size={28} />
-                    </div>
-                    <span className="text-xl font-medium">{item.title}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="relative">
-              <div className="absolute inset-0 bg-secondary/20 rounded-full blur-[100px]" />
-              <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-12 shadow-2xl">
-                <div className="space-y-6">
-                  <div className="h-4 bg-white/10 rounded-full w-3/4" />
-                  <div className="h-4 bg-white/10 rounded-full w-1/2" />
-                  <div className="h-32 bg-secondary/20 rounded-2xl w-full flex items-center justify-center">
-                    <Zap size={48} className="text-secondary animate-pulse" />
-                  </div>
-                  <div className="h-4 bg-white/10 rounded-full w-full" />
-                  <div className="h-4 bg-white/10 rounded-full w-2/3" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* 🏆 SOCIAL PROOF */}
       <section className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
