@@ -12,7 +12,7 @@ export default function Courses() {
     <div className="max-w-7xl mx-auto px-6 py-12 space-y-16">
       {/* Hero & Search */}
       <section className="space-y-8">
-        <h1 className="text-5xl md:text-6xl font-extrabold font-headline tracking-tight text-primary mb-6">
+        <h1 className="text-3xl md:text-6xl font-extrabold font-headline tracking-tight text-primary mb-6">
           Learn Skills That <span className="text-secondary">Matter.</span>
         </h1>
         <p className="text-on-surface-variant text-lg max-w-2xl mb-10 leading-relaxed">
@@ -25,11 +25,11 @@ export default function Courses() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
               <input 
                 type="text" 
-                placeholder="Search for courses, tools, or instructors..." 
-                className="w-full pl-12 pr-4 py-4 bg-surface-container-low border-none rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all text-on-surface"
+                placeholder="Search courses..." 
+                className="w-full pl-12 pr-4 py-3.5 md:py-4 bg-surface-container-low border-none rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all text-on-surface"
               />
             </div>
-            <button className="bg-primary text-white px-8 py-4 rounded-xl font-bold hover:opacity-90 transition-opacity">
+            <button className="bg-primary text-white px-8 py-3.5 md:py-4 rounded-xl font-bold hover:opacity-90 transition-opacity">
               Find Course
             </button>
           </div>
@@ -40,7 +40,7 @@ export default function Courses() {
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
                 className={cn(
-                  "px-4 py-2 rounded-full text-sm font-medium transition-all",
+                  "px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all whitespace-nowrap",
                   activeCategory === cat 
                     ? "bg-primary text-white" 
                     : "bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high"
@@ -107,7 +107,7 @@ export default function Courses() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
             {COURSES.map((course) => (
               <CourseCard key={course.id} course={course} />
             ))}

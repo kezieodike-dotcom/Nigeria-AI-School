@@ -79,7 +79,7 @@ export default function CourseCard({ course, className }: CourseCardProps) {
         )}
       >
         {/* Course Thumbnail Image */}
-        <Link to={`/course/${course.id}`} className="block h-56 relative overflow-hidden shrink-0">
+        <Link to={`/course/${course.id}`} className="block h-48 md:h-56 relative overflow-hidden shrink-0">
           <img 
             src={course.thumbnail} 
             alt={course.title} 
@@ -120,40 +120,40 @@ export default function CourseCard({ course, className }: CourseCardProps) {
         </Link>
 
         {/* Course Info Content */}
-        <div className="p-7 relative flex-grow flex flex-col">
-          <div className="flex items-center gap-2 mb-4">
+        <div className="p-5 md:p-7 relative flex-grow flex flex-col">
+          <div className="flex items-center gap-2 mb-3 md:mb-4">
             <span className={cn(
-              "px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-widest border", 
+              "px-2 md:px-3 py-1 text-[9px] md:text-[10px] font-black rounded-full uppercase tracking-widest border", 
               styles.tag
             )}>
               {course.category}
             </span>
-            <div className="flex items-center text-amber-500 text-[11px] font-black bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
-              <Star size={12} fill="currentColor" className="mr-1.5" />
+            <div className="flex items-center text-amber-500 text-[10px] md:text-[11px] font-black bg-amber-500/10 px-2 md:px-2.5 py-1 rounded-full border border-amber-500/20">
+              <Star size={10} fill="currentColor" className="mr-1 md:mr-1.5" />
               {course.rating}
             </div>
           </div>
 
           <Link to={`/course/${course.id}`}>
             <h3 className={cn(
-              "font-headline font-extrabold text-xl mb-3 line-clamp-2 transition-all duration-300 group-hover:tracking-tight bg-clip-text text-transparent bg-gradient-to-r", 
+              "font-headline font-extrabold text-lg md:text-xl mb-2 md:mb-3 line-clamp-2 transition-all duration-300 group-hover:tracking-tight bg-clip-text text-transparent bg-gradient-to-r", 
               styles.gradientText
             )}>
               {course.title}
             </h3>
           </Link>
           
-          <p className="text-sm text-on-surface-variant font-medium mb-6 line-clamp-2 leading-relaxed opacity-80">
+          <p className="text-xs md:text-sm text-on-surface-variant font-medium mb-4 md:mb-6 line-clamp-2 leading-relaxed opacity-80">
             {course.description}
           </p>
 
-          <div className="flex items-center gap-6 text-[11px] font-bold text-on-surface-variant mb-6 border-t border-b border-outline-variant/10 py-3 mt-auto">
-            <div className="flex items-center gap-1.5">
-              <Clock size={14} className="text-on-surface-variant/50" />
+          <div className="flex items-center gap-4 md:gap-6 text-[10px] md:text-[11px] font-bold text-on-surface-variant mb-4 md:mb-6 border-t border-b border-outline-variant/10 py-2 md:py-3 mt-auto">
+            <div className="flex items-center gap-1 md:gap-1.5">
+              <Clock size={12} className="text-on-surface-variant/50" />
               <span>{course.duration}</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <Users size={14} className="text-on-surface-variant/50" />
+            <div className="flex items-center gap-1 md:gap-1.5">
+              <Users size={12} className="text-on-surface-variant/50" />
               <span>{(course.reviewsCount * 1.5).toFixed(0)} Students</span>
             </div>
           </div>
@@ -179,8 +179,8 @@ export default function CourseCard({ course, className }: CourseCardProps) {
             </div>
             
             <div className="flex flex-col items-end shrink-0">
-               <div className="flex items-center gap-1.5 mb-1.5">
-                <span className="text-2xl font-black text-primary tracking-tighter">
+               <div className="flex items-center gap-1 mb-1 md:mb-1.5">
+                <span className="text-xl md:text-2xl font-black text-primary tracking-tighter">
                   ₦{course.price.toLocaleString()}
                 </span>
                </div>
@@ -188,11 +188,11 @@ export default function CourseCard({ course, className }: CourseCardProps) {
                 whileHover={{ scale: 1.1, rotate: 5 }}
                 whileTap={{ scale: 0.9 }}
                 className={cn(
-                  "p-3 rounded-2xl transition-all duration-300 flex items-center justify-center", 
+                  "p-2.5 md:p-3 rounded-xl md:rounded-2xl transition-all duration-300 flex items-center justify-center", 
                   styles.button
                 )}
               >
-                <ShoppingCart size={20} className="drop-shadow-sm" />
+                <ShoppingCart size={18} className="drop-shadow-sm md:w-5 md:h-5" />
               </motion.button>
             </div>
           </div>

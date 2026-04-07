@@ -98,11 +98,11 @@ export default function HowItWorks() {
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="font-headline font-black text-5xl md:text-7xl text-white mb-8 tracking-tight"
+            className="font-headline font-black text-3xl md:text-7xl text-white mb-8 tracking-tight"
           >
             How the <span className="text-secondary">AI Economy</span> Works.
           </motion.h1>
-          <p className="text-white/70 text-xl max-w-2xl mx-auto font-medium">
+          <p className="text-white/70 text-lg md:text-xl max-w-2xl mx-auto font-medium">
             Nigeria AI School is more than a platform. It's a triple-engine system designed for technical growth and financial independence.
           </p>
         </div>
@@ -123,10 +123,10 @@ export default function HowItWorks() {
                    <section.icon size={14} />
                    {section.subtitle}
                 </div>
-                <h2 className="font-headline font-black text-4xl md:text-5xl text-primary mb-8 leading-tight">
+                <h2 className="font-headline font-black text-2xl md:text-5xl text-primary mb-6 md:mb-8 leading-tight">
                   {section.title}
                 </h2>
-                <p className="text-on-surface-variant text-xl leading-relaxed mb-12 opacity-80">
+                <p className="text-on-surface-variant text-lg md:text-xl leading-relaxed mb-10 md:mb-12 opacity-80">
                   {section.description}
                 </p>
                 
@@ -158,15 +158,15 @@ export default function HowItWorks() {
                     className="aspect-square bg-white rounded-[3rem] p-1 shadow-2xl relative overflow-hidden"
                   >
                     <div className="absolute inset-0 bg-surface-container-low/30" />
-                    <div className="relative h-full flex flex-col items-center justify-center p-12 overflow-hidden">
+                    <div className="relative h-full flex flex-col items-center justify-center p-8 md:p-12 overflow-hidden">
                        {/* Decorative UI elements */}
                        <div className={cn("absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] opacity-[0.05] pointer-events-none")}>
-                          <section.icon size={500} />
+                          <section.icon size={300} className="md:w-[500px] md:h-[500px]" />
                        </div>
                        
                        <div className="space-y-6 relative z-10 text-center">
-                          <div className={cn("w-32 h-32 rounded-[2.5rem] mx-auto flex items-center justify-center shadow-2xl bg-gradient-to-br transition-transform duration-700 hover:scale-110", section.gradient)}>
-                             <section.icon size={64} className="text-white" />
+                          <div className={cn("w-24 h-24 md:w-32 md:h-32 rounded-3xl md:rounded-[2.5rem] mx-auto flex items-center justify-center shadow-2xl bg-gradient-to-br transition-transform duration-700 hover:scale-110", section.gradient)}>
+                             <section.icon size={48} className="text-white md:w-16 md:h-16" />
                           </div>
                           <div className="h-2 w-24 mx-auto rounded-full bg-surface-container-high" />
                           <div className="space-y-3">
@@ -184,17 +184,17 @@ export default function HowItWorks() {
 
       {/* CTA Final */}
       <section className="max-w-7xl mx-auto px-6 mt-48 mb-32">
-         <GlowCard glowColor="orange" customSize={true} className="bg-white rounded-[4rem] p-16 md:p-24 text-center border border-secondary/10 shadow-[0_32px_64px_-16px_rgba(255,165,0,0.15)] relative overflow-hidden h-auto">
+          <GlowCard glowColor="orange" customSize={true} className="bg-white rounded-3xl md:rounded-[4rem] p-8 md:p-24 text-center border border-secondary/10 shadow-[0_32px_64px_-16px_rgba(255,165,0,0.15)] relative overflow-hidden h-auto">
             <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent opacity-30 pointer-events-none" />
-            <div className="relative z-10 space-y-8">
-              <h2 className="font-headline font-black text-5xl md:text-7xl text-primary tracking-tight">Start Your Journey <span className="text-secondary">Today.</span></h2>
-              <p className="text-on-surface-variant text-xl max-w-2xl mx-auto font-medium opacity-80 leading-relaxed">Join 25,000+ students and creators building the future of African Artificial Intelligence.</p>
-              <div className="flex flex-wrap justify-center gap-6 pt-6">
-                 <button className="bg-secondary text-white px-16 py-6 rounded-[2rem] font-black text-2xl shadow-2xl shadow-secondary/40 hover:scale-105 hover:rotate-1 active:scale-95 transition-all">Get Started Now</button>
-                 <button className="bg-white border-2 border-primary/10 text-primary px-12 py-5 rounded-[2rem] font-black text-xl hover:bg-surface-container-low transition-all">View Curriculum</button>
+            <div className="relative z-10 space-y-6 md:space-y-8">
+              <h2 className="font-headline font-black text-3xl md:text-7xl text-primary tracking-tight">Start Your Journey <span className="text-secondary">Today.</span></h2>
+              <p className="text-on-surface-variant text-lg md:text-xl max-w-2xl mx-auto font-medium opacity-80 leading-relaxed">Join 25,000+ students and creators building the future of African Artificial Intelligence.</p>
+              <div className="flex flex-wrap justify-center gap-4 md:gap-6 pt-4 md:pt-6">
+                 <button className="bg-secondary text-white px-10 md:px-16 py-4 md:py-6 rounded-xl md:rounded-[2rem] font-black text-xl md:text-2xl shadow-2xl shadow-secondary/40 hover:scale-105 hover:rotate-1 active:scale-95 transition-all">Get Started Now</button>
+                 <button className="bg-white border-2 border-primary/10 text-primary px-8 md:px-12 py-3.5 md:py-5 rounded-xl md:rounded-[2rem] font-black text-lg md:text-xl hover:bg-surface-container-low transition-all">View Curriculum</button>
               </div>
             </div>
-         </GlowCard>
+          </GlowCard>
       </section>
     </div>
   );
