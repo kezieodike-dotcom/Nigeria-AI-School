@@ -20,21 +20,21 @@ export default function Dashboard() {
       case 'Overview':
         return (
           <div className="space-y-12">
-            {/* Stats Grid */}
-            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Stats Grid: Bento Box Style */}
+            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
-                { label: 'Total Earnings', value: '₦1.2M', icon: CreditCard, color: 'text-primary', bg: 'bg-primary/10', glow: 'blue' as const, border: 'border-primary/20' },
-                { label: 'Active Students', value: '1,240', icon: Users, color: 'text-secondary', bg: 'bg-secondary/10', glow: 'green' as const, border: 'border-secondary/20' },
-                { label: 'Course Rating', value: '4.9', icon: Star, color: 'text-amber-500', bg: 'bg-amber-500/10', glow: 'orange' as const, border: 'border-amber-500/20' },
-                { label: 'Referral Bonus', value: '₦85k', icon: Share2, color: 'text-blue-500', bg: 'bg-blue-500/10', glow: 'blue' as const, border: 'border-blue-500/20' },
+                { label: 'Total Earnings', value: '₦1.2M', icon: CreditCard, color: 'text-primary', bg: 'bg-primary/10', glow: 'blue' as const, border: 'border-primary/20', span: 'lg:col-span-2' },
+                { label: 'Active Students', value: '1,240', icon: Users, color: 'text-secondary', bg: 'bg-secondary/10', glow: 'green' as const, border: 'border-secondary/20', span: 'col-span-1' },
+                { label: 'Course Rating', value: '4.9', icon: Star, color: 'text-amber-500', bg: 'bg-amber-500/10', glow: 'orange' as const, border: 'border-amber-500/20', span: 'col-span-1' },
               ].map((stat) => (
                 <GlowCard 
                   key={stat.label} 
                   glowColor={stat.glow}
                   customSize={true}
                   className={cn(
-                    "bg-white p-7 rounded-3xl border flex items-center gap-6 group hover:shadow-2xl transition-all duration-500 h-auto",
-                    stat.border
+                    "bg-white p-7 rounded-[2rem] border flex items-center gap-6 group hover:shadow-2xl transition-all duration-500 h-auto",
+                    stat.border,
+                    stat.span
                   )}
                 >
                   <div className={cn("w-16 h-16 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-sm", stat.bg, stat.color)}>
@@ -46,6 +46,22 @@ export default function Dashboard() {
                   </div>
                 </GlowCard>
               ))}
+              <GlowCard 
+                glowColor="blue"
+                customSize={true}
+                className="bg-primary p-7 rounded-[2rem] border border-white/10 flex flex-col justify-between group hover:shadow-2xl transition-all duration-500 h-auto text-white sm:col-span-2 lg:col-span-1"
+              >
+                <div className="flex justify-between items-start mb-4">
+                   <div className="bg-white/10 p-3 rounded-xl border border-white/20">
+                      <TrendingUp size={24} />
+                   </div>
+                   <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Referral</span>
+                </div>
+                <div>
+                   <p className="text-[10px] font-black uppercase tracking-widest mb-1 opaque-60">Referral Bonus</p>
+                   <h4 className="text-3xl font-headline font-black tracking-tight">₦85k</h4>
+                </div>
+              </GlowCard>
             </section>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
