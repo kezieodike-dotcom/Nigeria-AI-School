@@ -4,7 +4,7 @@ import { Star, ShoppingCart, PlayCircle, Clock, Users } from 'lucide-react';
 import { Course } from '../types';
 import { cn } from '../lib/utils';
 import { motion } from 'motion/react';
-import { GlowCard } from './ui/spotlight-card';
+import GlowCard from './ui/spotlight-card';
 
 interface CourseCardProps {
   course: Course;
@@ -20,7 +20,7 @@ export default function CourseCard({ course, className }: CourseCardProps) {
           glowColor: 'purple' as const,
           tag: 'bg-ai-purple/10 text-ai-purple border-ai-purple/20',
           gradientText: 'from-ai-purple to-indigo-500',
-          button: 'bg-ai-purple text-white shadow-[0_4px_15px_rgba(139,92,246,0.3)]',
+          button: 'bg-ai-purple text-white',
           badge: 'bg-gradient-to-r from-ai-purple to-indigo-600 text-white',
           border: 'border-ai-purple/10',
           iconGlow: 'bg-ai-purple/10 text-ai-purple'
@@ -30,7 +30,7 @@ export default function CourseCard({ course, className }: CourseCardProps) {
           glowColor: 'green' as const,
           tag: 'bg-data-teal/10 text-data-teal border-data-teal/20',
           gradientText: 'from-data-teal to-sky-500',
-          button: 'bg-data-teal text-white shadow-[0_4px_15px_rgba(20,184,166,0.3)]',
+          button: 'bg-data-teal text-white',
           badge: 'bg-gradient-to-r from-data-teal to-sky-600 text-white',
           border: 'border-data-teal/10',
           iconGlow: 'bg-data-teal/10 text-data-teal'
@@ -40,7 +40,7 @@ export default function CourseCard({ course, className }: CourseCardProps) {
           glowColor: 'orange' as const,
           tag: 'bg-web-gold/10 text-web-gold border-web-gold/20',
           gradientText: 'from-web-gold to-orange-500',
-          button: 'bg-web-gold text-white shadow-[0_4px_15px_rgba(245,158,11,0.3)]',
+          button: 'bg-web-gold text-white',
           badge: 'bg-gradient-to-r from-web-gold to-orange-600 text-white',
           border: 'border-web-gold/10',
           iconGlow: 'bg-web-gold/10 text-web-gold'
@@ -50,7 +50,7 @@ export default function CourseCard({ course, className }: CourseCardProps) {
           glowColor: 'blue' as const,
           tag: 'bg-primary/5 text-primary border-primary/10',
           gradientText: 'from-primary to-primary-container',
-          button: 'bg-primary text-white shadow-[0_4px_15px_rgba(0,21,77,0.2)]',
+          button: 'bg-primary text-white',
           badge: 'bg-primary text-white',
           border: 'border-primary/5',
           iconGlow: 'bg-primary/5 text-primary'
@@ -74,7 +74,7 @@ export default function CourseCard({ course, className }: CourseCardProps) {
         glowColor={styles.glowColor}
         customSize={true}
         className={cn(
-          "h-full !p-0 border overflow-hidden flex flex-col bg-white shadow-xl shadow-black/[0.03] hover:shadow-2xl hover:shadow-black/[0.06] transition-all duration-500",
+          "h-full !p-0 border overflow-hidden flex flex-col bg-white transition-all duration-500",
           styles.border
         )}
       >
@@ -106,14 +106,14 @@ export default function CourseCard({ course, className }: CourseCardProps) {
           {/* Glassmorphic Badges */}
           {course.isBestseller && (
             <div className={cn(
-              "absolute top-4 right-4 px-3 py-1 rounded-full text-[10px] font-black shadow-lg backdrop-blur-md border border-white/30 tracking-widest", 
+              "absolute top-4 right-4 px-3 py-1 rounded-full text-[10px] font-black backdrop-blur-md border border-white/30 tracking-widest", 
               styles.badge
             )}>
               BESTSELLER
             </div>
           )}
           {course.isNew && (
-            <div className="absolute top-4 left-4 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-[10px] font-black text-primary shadow-lg border border-primary/10 tracking-widest">
+            <div className="absolute top-4 left-4 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-[10px] font-black text-primary border border-primary/10 tracking-widest">
               NEW
             </div>
           )}
@@ -136,7 +136,7 @@ export default function CourseCard({ course, className }: CourseCardProps) {
 
           <Link to={`/course/${course.id}`}>
             <h3 className={cn(
-              "font-headline font-extrabold text-lg md:text-xl mb-2 md:mb-3 line-clamp-2 transition-all duration-300 group-hover:tracking-tight bg-clip-text text-transparent bg-gradient-to-r", 
+              "font-headline font-extrabold text-base md:text-lg mb-2 md:mb-3 line-clamp-2 transition-all duration-300 group-hover:tracking-tight bg-clip-text text-transparent bg-gradient-to-r", 
               styles.gradientText
             )}>
               {course.title}
@@ -165,7 +165,7 @@ export default function CourseCard({ course, className }: CourseCardProps) {
                 <img 
                   src={course.instructor.avatar} 
                   alt={course.instructor.name} 
-                  className="w-11 h-11 rounded-full object-cover ring-2 ring-surface border-2 border-white shadow-md group-hover:scale-105 transition-transform"
+                  className="w-11 h-11 rounded-full object-cover ring-2 ring-surface border-2 border-white group-hover:scale-105 transition-transform"
                   referrerPolicy="no-referrer"
                 />
                 <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full ring-1 ring-green-100 animate-pulse"></div>
@@ -180,7 +180,7 @@ export default function CourseCard({ course, className }: CourseCardProps) {
             
             <div className="flex flex-col items-end shrink-0">
                <div className="flex items-center gap-1 mb-1 md:mb-1.5">
-                <span className="text-xl md:text-2xl font-black text-primary tracking-tighter">
+                <span className="text-lg md:text-xl font-black text-primary tracking-tighter">
                   ₦{course.price.toLocaleString()}
                 </span>
                </div>

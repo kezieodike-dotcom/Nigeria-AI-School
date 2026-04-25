@@ -12,6 +12,10 @@ export default function CourseDetail() {
   const course = COURSES.find(c => c.id === id) || COURSES[0];
 
   const [activeModule, setActiveModule] = React.useState<number | null>(0);
+  const [activeVideo, setActiveVideo] = React.useState<string | null>(null);
+  
+  // Mock course asset
+  const sampleVideoUrl = "https://www.w3schools.com/html/mov_bbb.mp4";
 
   // Mock Curriculum Data
   const curriculum = [
@@ -139,10 +143,17 @@ export default function CourseDetail() {
                     <div className="px-6 py-4 border-t border-outline-variant/10 bg-white">
                        <ul className="space-y-3">
                          {[1, 2, 3].map((lesson) => (
-                           <li key={lesson} className="flex items-center justify-between group">
+                           <li 
+                             key={lesson} 
+                             className="flex items-center justify-between group cursor-pointer hover:bg-surface-container-lowest p-2 rounded-lg transition-colors"
+                             onClick={() => {
+                               setActiveVideo(sampleVideoUrl);
+                               window.scrollTo({ top: 0, behavior: 'smooth' });
+                             }}
+                           >
                              <div className="flex items-center gap-3">
-                               <PlayCircle className="text-on-surface-variant group-hover:text-secondary transition-colors" size={18} />
-                               <span className="text-on-surface hover:text-primary cursor-pointer transition-colors">
+                               <PlayCircle className={cn("transition-colors", activeVideo ? "text-secondary" : "text-on-surface-variant group-hover:text-secondary")} size={18} />
+                               <span className={cn("transition-colors font-medium", activeVideo ? "text-primary" : "text-on-surface group-hover:text-primary")}>
                                  Lesson {lesson}: Deep dive into concepts
                                </span>
                              </div>
@@ -166,23 +177,37 @@ export default function CourseDetail() {
             customSize={true}
             className="bg-white rounded-3xl border border-outline-variant/20 shadow-xl overflow-hidden sticky top-28 !p-0 h-auto"
           >
-            {/* Video Preview */}
-            <div className="relative h-56 bg-primary cursor-pointer group">
-              <img 
-                src={course.thumbnail} 
-                alt="Course Preview" 
-                className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700" 
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-16 h-16 bg-white/20 backdrop-blur border-2 border-white rounded-full flex items-center justify-center group-hover:bg-secondary group-hover:border-secondary transition-all">
-                  <PlayCircle className="text-white fill-white/10" size={32} />
+            {/* Video Preview / Active Player */}
+            {activeVideo ? (
+              <div className="relative h-56 bg-black">
+                <video 
+                  src={activeVideo} 
+                  controls 
+                  autoPlay 
+                  className="w-full h-full object-contain"
+                />
+              </div>
+            ) : (
+              <div 
+                className="relative h-56 bg-primary cursor-pointer group"
+                onClick={() => setActiveVideo(sampleVideoUrl)}
+              >
+                <img 
+                  src={course.thumbnail} 
+                  alt="Course Preview" 
+                  className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700" 
+                  referrerPolicy="no-referrer"
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-16 h-16 bg-white/20 backdrop-blur border-2 border-white rounded-full flex items-center justify-center group-hover:bg-secondary group-hover:border-secondary transition-all">
+                    <PlayCircle className="text-white fill-white/10" size={32} />
+                  </div>
+                </div>
+                <div className="absolute bottom-4 inset-x-0 text-center font-bold text-white tracking-widest text-sm drop-shadow-md">
+                  PREVIEW COURSE
                 </div>
               </div>
-              <div className="absolute bottom-4 inset-x-0 text-center font-bold text-white tracking-widest text-sm drop-shadow-md">
-                PREVIEW COURSE
-              </div>
-            </div>
+            )}
 
             <div className="p-8">
               <div className="flex items-end gap-3 mb-6">

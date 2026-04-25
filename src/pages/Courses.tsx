@@ -24,7 +24,7 @@ export default function Courses() {
     <div className="max-w-7xl mx-auto px-6 py-12 space-y-16">
       {/* Hero & Search */}
       <section className="space-y-8">
-        <h1 className="text-5xl md:text-7xl font-extrabold font-headline tracking-tight text-primary mb-6 leading-[1.1]">
+        <h1 className="text-4xl md:text-6xl font-extrabold font-headline tracking-tight text-primary mb-6 leading-[1.1]">
           Learn Skills That <br className="hidden md:block" /><span className="text-secondary italic">Matter.</span>
         </h1>
         <p className="text-on-surface-variant text-lg max-w-2xl mb-10 leading-relaxed min-h-[4rem] font-medium">
@@ -32,7 +32,7 @@ export default function Courses() {
           <span className="inline-block w-1.5 h-5 ml-1 bg-secondary animate-pulse align-middle" />
         </p>
 
-        <div className="glass-effect p-8 rounded-[2rem] shadow-2xl shadow-black/[0.02] space-y-8 border border-white/40">
+        <div className="glass-effect p-8 rounded-[2rem] space-y-8 border border-white/40">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-grow group">
               <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors" size={22} />
@@ -109,7 +109,7 @@ export default function Courses() {
         {/* Course Grid */}
         <div className="lg:col-span-3 space-y-12">
           <div className="flex justify-between items-center">
-            <span className="text-on-surface-variant font-medium">Showing 248 courses</span>
+            <span className="text-on-surface-variant font-medium">Showing {COURSES.length} courses</span>
             <div className="flex items-center gap-2">
               <span className="text-sm text-on-surface-variant">Sort by:</span>
               <select className="bg-transparent border-none text-sm font-bold text-primary focus:ring-0 cursor-pointer">
@@ -124,25 +124,6 @@ export default function Courses() {
             {COURSES.map((course) => (
               <CourseCard key={course.id} course={course} />
             ))}
-            {/* Duplicate for visual effect */}
-            {COURSES.map((course) => (
-              <CourseCard key={course.id + '-dup'} course={course} />
-            ))}
-          </div>
-
-          {/* Pagination */}
-          <div className="flex justify-center items-center gap-4 pt-12">
-            <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors text-primary">
-              <ChevronLeft size={20} />
-            </button>
-            <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-primary text-white font-bold">1</button>
-            <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors text-primary font-bold">2</button>
-            <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors text-primary font-bold">3</button>
-            <span className="text-on-surface-variant">...</span>
-            <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors text-primary font-bold">12</button>
-            <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors text-primary">
-              <ChevronRight size={20} />
-            </button>
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { CheckCircle, X, Info, AlertTriangle } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -54,13 +54,25 @@ export function Toast({ message, type = 'success', onClose }: ToastProps) {
   );
 }
 
-export function ToastContainer() {
-  const [toasts, setToasts] = useState<{ id: number; message: string; type: any }[]>([]);
+type ToastData = { id: number; message: string; type: 'success' | 'info' | 'error' | 'warning' };
+let toastListeners: ((toast: ToastData) => void)[] = [];
 
-  window.showToast = (message: string, type: any = 'success') => {
-    const id = Date.now();
-    setToasts((prev) => [...prev, { id, message, type }]);
-  };
+export function ToastContainer() {
+  const [toasts, setToasts] = useState<ToastData[]>([]);
+
+  useEffect(() => {
+    const addToast = (toast: ToastData) => {
+      setToasts((prev) => [...prev, toast]);
+    };
+    toastListeners.push(addToast);
+    return () => {
+      toastListeners = toastListeners.filter((l) => l !== addToast);
+    };
+  }, []);
+
+  const removeToast = useCallback((id: number) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
 
   return (
     <AnimatePresence>
@@ -69,12 +81,17 @@ export function ToastContainer() {
           key={toast.id} 
           message={toast.message} 
           type={toast.type} 
-          onClose={() => setToasts((prev) => prev.filter((t) => t.id !== toast.id))} 
+          onClose={() => removeToast(toast.id)} 
         />
       ))}
     </AnimatePresence>
   );
 }
+
+window.showToast = (message: string, type: 'success' | 'info' | 'error' | 'warning' = 'success') => {
+  const toast = { id: Date.now(), message, type };
+  toastListeners.forEach((listener) => listener(toast));
+};
 
 declare global {
   interface Window {

@@ -1,18 +1,56 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, User, Lock, Mail, Presentation, GraduationCap } from 'lucide-react';
+import { ArrowRight, User, Lock, Mail, AlertCircle, Loader2 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Signup() {
-  const [role, setRole] = useState<'student' | 'creator'>('student');
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSignedUp, setIsSignedUp] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (role === 'creator') {
-      navigate('/dashboard'); // Will be creator-dashboard in future mapping
-    } else {
+  React.useEffect(() => {
+    if (user) {
       navigate('/dashboard');
+    }
+  }, [user, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+          }
+        }
+      });
+
+      if (error) throw error;
+      
+      if (data.session) {
+        window.showToast('Welcome to Nigeria AI School!');
+      } else {
+        window.showToast('Account created! Please check your email.');
+      }
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'An error occurred during signup.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -30,44 +68,22 @@ export default function Signup() {
           <p className="text-on-surface-variant font-medium">Join Africa's leading AI learning platform.</p>
         </div>
 
-        <form className="space-y-6" onSubmit={handleSubmit}>
-          
-          {/* Role Selection */}
-          <div className="grid grid-cols-2 gap-4 mb-2">
-            <button
-              type="button"
-              onClick={() => setRole('student')}
-              className={cn(
-                "p-4 rounded-2xl border-2 flex flex-col items-center justify-center gap-2 transition-all",
-                role === 'student' 
-                  ? "border-primary bg-primary/5 text-primary" 
-                  : "border-outline-variant/20 bg-surface-container-lowest text-on-surface-variant hover:border-primary/50"
-              )}
-            >
-              <User size={24} />
-              <span className="font-bold text-sm">I want to Learn</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setRole('creator')}
-              className={cn(
-                "p-4 rounded-2xl border-2 flex flex-col items-center justify-center gap-2 transition-all",
-                role === 'creator' 
-                  ? "border-secondary bg-secondary/5 text-secondary" 
-                  : "border-outline-variant/20 bg-surface-container-lowest text-on-surface-variant hover:border-secondary/50"
-              )}
-            >
-              <Presentation size={24} />
-              <span className="font-bold text-sm">I want to Teach</span>
-            </button>
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl flex items-center gap-3 text-sm font-bold border border-red-100">
+            <AlertCircle size={18} />
+            {error}
           </div>
+        )}
 
+        <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="relative w-full">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
                 <input 
                   type="text" 
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
                   placeholder="First Name" 
                   className="w-full pl-12 pr-4 py-4 rounded-xl bg-surface-container-lowest border border-outline-variant/20 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                   required
@@ -76,6 +92,8 @@ export default function Signup() {
               <div className="relative w-full">
                 <input 
                   type="text" 
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
                   placeholder="Last Name" 
                   className="w-full px-4 py-4 rounded-xl bg-surface-container-lowest border border-outline-variant/20 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                   required
@@ -87,6 +105,8 @@ export default function Signup() {
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
               <input 
                 type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email Address" 
                 className="w-full pl-12 pr-4 py-4 rounded-xl bg-surface-container-lowest border border-outline-variant/20 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                 required
@@ -97,6 +117,8 @@ export default function Signup() {
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
               <input 
                 type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="Create Password" 
                 className="w-full pl-12 pr-4 py-4 rounded-xl bg-surface-container-lowest border border-outline-variant/20 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                 required
@@ -108,11 +130,12 @@ export default function Signup() {
             By signing up, you agree to our <Link to="#" className="text-primary hover:underline">Terms</Link> and <Link to="#" className="text-primary hover:underline">Privacy Policy</Link>.
           </div>
 
-          <button type="submit" className={cn(
-            "w-full text-white py-4 flex justify-center items-center gap-2 rounded-xl font-bold text-lg hover:scale-[1.02] active:scale-95 transition-all shadow-lg",
-            role === 'creator' ? "bg-secondary shadow-secondary/20 hover:bg-secondary/90" : "bg-primary shadow-primary/20 hover:bg-primary/90"
-          )}>
-            Create Account <ArrowRight size={20} />
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="w-full text-white py-4 flex justify-center items-center gap-2 rounded-xl font-bold text-lg hover:scale-[1.02] active:scale-95 transition-all shadow-lg bg-primary shadow-primary/20 hover:bg-primary/90 disabled:opacity-70 disabled:hover:scale-100 disabled:cursor-not-allowed"
+          >
+            {loading ? <Loader2 size={20} className="animate-spin" /> : <>Create Account <ArrowRight size={20} /></>}
           </button>
         </form>
 

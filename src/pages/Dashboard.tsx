@@ -1,18 +1,144 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, CreditCard, Settings, LogOut, Search, Bell, Star, Clock, PlayCircle, ChevronRight, TrendingUp, Users, Share2, Rocket } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { LayoutDashboard, BookOpen, CreditCard, Settings, LogOut, Search, Bell, Star, Clock, PlayCircle, ChevronRight, TrendingUp, Users, Share2, Rocket, User, Camera, UploadCloud, X } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { useAuth } from '../contexts/AuthContext';
 import { COURSES } from '../constants';
-import { GlowCard } from '../components/ui/spotlight-card';
+import GlowCard from '../components/ui/spotlight-card';
 
 export default function Dashboard() {
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const [activeTab, setActiveTab] = React.useState('Overview');
+  const [userName, setUserName] = React.useState('Student');
+  const [showCamera, setShowCamera] = React.useState(false);
+  const [avatarImage, setAvatarImage] = React.useState<string | null>(null);
+  const [firstNameInput, setFirstNameInput] = React.useState('');
+  const [lastNameInput, setLastNameInput] = React.useState('');
+  const [emailInput, setEmailInput] = React.useState('');
+  const [isUpdating, setIsUpdating] = React.useState(false);
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+
+  const startCamera = async () => {
+    setShowCamera(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (err) {
+      console.error("Error accessing camera:", err);
+      window.showToast("Could not access camera. Please check permissions.", "error");
+    }
+  };
+
+  const stopCamera = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+      tracks.forEach(track => track.stop());
+    }
+    setShowCamera(false);
+  };
+
+  const takePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const context = canvasRef.current.getContext('2d');
+      if (context) {
+        canvasRef.current.width = videoRef.current.videoWidth;
+        canvasRef.current.height = videoRef.current.videoHeight;
+        context.drawImage(videoRef.current, 0, 0);
+        const dataUrl = canvasRef.current.toDataURL('image/png');
+        setAvatarImage(dataUrl);
+        stopCamera();
+      }
+    }
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/login');
+  };
+
+  React.useEffect(() => {
+    if (user) {
+      const firstName = user.user_metadata?.first_name || 'Student';
+      setUserName(firstName);
+      setFirstNameInput(user.user_metadata?.first_name || '');
+      setLastNameInput(user.user_metadata?.last_name || '');
+      setEmailInput(user.email || '');
+      if (user.user_metadata?.avatar_url) {
+        setAvatarImage(user.user_metadata.avatar_url);
+      }
+    }
+  }, [user]);
+
+  const handleUpdateProfile = async () => {
+    setIsUpdating(true);
+    try {
+      let finalAvatarUrl = avatarImage;
+
+      // If the avatarImage is a new base64 string, upload it to Supabase Storage first
+      if (avatarImage && avatarImage.startsWith('data:image')) {
+        try {
+          const fileExt = avatarImage.substring("data:image/".length, avatarImage.indexOf(";base64"));
+          const fileName = `${user?.id}-${Date.now()}.${fileExt}`;
+          
+          // Convert base64 to Blob
+          const res = await fetch(avatarImage);
+          const blob = await res.blob();
+
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('avatars')
+            .upload(fileName, blob, {
+              contentType: `image/${fileExt}`,
+              upsert: true
+            });
+
+          if (uploadError) throw uploadError;
+
+          const { data: publicUrlData } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(fileName);
+            
+          finalAvatarUrl = publicUrlData.publicUrl;
+        } catch (uploadError: any) {
+           throw new Error("Failed to upload image. Please ensure you have created an 'avatars' bucket in Supabase Storage. Details: " + uploadError.message);
+        }
+      }
+
+      const updates: any = {
+        data: {
+          first_name: firstNameInput,
+          last_name: lastNameInput,
+          avatar_url: finalAvatarUrl
+        }
+      };
+      
+      if (emailInput !== user?.email) {
+        updates.email = emailInput;
+      }
+      
+      const { error } = await supabase.auth.updateUser(updates);
+      if (error) throw error;
+      
+      setAvatarImage(finalAvatarUrl); // Update local state with the new URL
+      window.showToast("Profile updated successfully!");
+    } catch (error: any) {
+      window.showToast(error.message, "error");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
 
   const sidebarItems = [
     { name: 'Overview', icon: LayoutDashboard },
     { name: 'My Courses', icon: BookOpen },
     { name: 'Earnings', icon: CreditCard },
     { name: 'Settings', icon: Settings },
+    { name: 'Profile', icon: User },
   ];
 
   const renderContent = () => {
@@ -23,45 +149,30 @@ export default function Dashboard() {
             {/* Stats Grid: Bento Box Style */}
             <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
-                { label: 'Total Earnings', value: '₦1.2M', icon: CreditCard, color: 'text-primary', bg: 'bg-primary/10', glow: 'blue' as const, border: 'border-primary/20', span: 'lg:col-span-2' },
-                { label: 'Active Students', value: '1,240', icon: Users, color: 'text-secondary', bg: 'bg-secondary/10', glow: 'green' as const, border: 'border-secondary/20', span: 'col-span-1' },
-                { label: 'Course Rating', value: '4.9', icon: Star, color: 'text-amber-500', bg: 'bg-amber-500/10', glow: 'orange' as const, border: 'border-amber-500/20', span: 'col-span-1' },
+                { label: 'Total Earnings', value: '₦0', icon: CreditCard, color: 'text-primary', bg: 'bg-primary/10', glow: 'blue' as const, border: 'border-primary/20', span: 'lg:col-span-2' },
+                { label: 'Active Students', value: '0', icon: Users, color: 'text-secondary', bg: 'bg-secondary/10', glow: 'green' as const, border: 'border-secondary/20', span: 'col-span-1' },
+                { label: 'Course Rating', value: '0.0', icon: Star, color: 'text-amber-500', bg: 'bg-amber-500/10', glow: 'orange' as const, border: 'border-amber-500/20', span: 'col-span-1' },
               ].map((stat) => (
                 <GlowCard 
                   key={stat.label} 
                   glowColor={stat.glow}
                   customSize={true}
                   className={cn(
-                    "bg-white p-7 rounded-[2rem] border flex items-center gap-6 group hover:shadow-2xl transition-all duration-500 h-auto",
+                    "bg-white p-7 rounded-[2rem] border flex items-center gap-6 group transition-all duration-500 h-auto",
                     stat.border,
                     stat.span
                   )}
                 >
-                  <div className={cn("w-16 h-16 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-sm", stat.bg, stat.color)}>
+                  <div className={cn("w-16 h-16 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-500", stat.bg, stat.color)}>
                     <stat.icon size={32} className="drop-shadow-sm" />
                   </div>
                   <div className="flex flex-col">
                     <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1.5 opacity-60">{stat.label}</p>
-                    <h4 className="text-3xl font-headline font-black text-primary tracking-tight">{stat.value}</h4>
+                    <h4 className="text-2xl font-headline font-black text-primary tracking-tight">{stat.value}</h4>
                   </div>
                 </GlowCard>
               ))}
-              <GlowCard 
-                glowColor="blue"
-                customSize={true}
-                className="bg-primary p-7 rounded-[2rem] border border-white/10 flex flex-col justify-between group hover:shadow-2xl transition-all duration-500 h-auto text-white sm:col-span-2 lg:col-span-1"
-              >
-                <div className="flex justify-between items-start mb-4">
-                   <div className="bg-white/10 p-3 rounded-xl border border-white/20">
-                      <TrendingUp size={24} />
-                   </div>
-                   <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Referral</span>
-                </div>
-                <div>
-                   <p className="text-[10px] font-black uppercase tracking-widest mb-1 opaque-60">Referral Bonus</p>
-                   <h4 className="text-3xl font-headline font-black tracking-tight">₦85k</h4>
-                </div>
-              </GlowCard>
+
             </section>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
@@ -76,7 +187,7 @@ export default function Dashboard() {
                       key={course.id} 
                       glowColor="blue"
                       customSize={true}
-                      className="bg-white p-6 rounded-2xl border border-outline-variant/10 flex flex-col md:flex-row items-center gap-8 group hover:shadow-md transition-all h-auto"
+                      className="bg-white p-6 rounded-2xl border border-outline-variant/10 flex flex-col md:flex-row items-center gap-8 group transition-all h-auto"
                     >
                       <div className="w-full md:w-48 h-32 rounded-xl overflow-hidden relative shrink-0">
                         <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
@@ -110,7 +221,7 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Total Balance</p>
-                      <h3 className="text-3xl font-headline font-bold text-primary">₦1.2M</h3>
+                      <h3 className="text-2xl font-headline font-bold text-primary">₦1.2M</h3>
                     </div>
                   </div>
                   <button onClick={() => setActiveTab('Earnings')} className="w-full py-4 bg-primary text-white rounded-xl font-bold">Details</button>
@@ -132,7 +243,9 @@ export default function Dashboard() {
                     <div className="h-2 bg-surface-container-low rounded-full overflow-hidden">
                       <div className="h-full bg-secondary w-[60%] rounded-full"></div>
                     </div>
-                    <button className="w-full py-3 bg-primary text-white rounded-xl font-bold text-sm">Resume Course</button>
+                    <Link to={`/course/${course.id}`} className="w-full">
+                      <button className="w-full py-3 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition-all">Resume Course</button>
+                    </Link>
                   </div>
                 </GlowCard>
               ))}
@@ -142,30 +255,15 @@ export default function Dashboard() {
       case 'Earnings':
         return (
           <div className="space-y-12">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="max-w-md">
               <GlowCard glowColor="green" className="bg-white p-8 h-auto">
                 <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">Wallet Balance</p>
-                <h3 className="text-3xl font-black text-primary">₦1,245,000</h3>
+                <h3 className="text-2xl font-black text-primary">₦1,245,000</h3>
                 <button className="mt-6 w-full py-3 bg-secondary text-white rounded-xl font-bold">Withdraw Now</button>
               </GlowCard>
-              <GlowCard glowColor="blue" className="lg:col-span-2 bg-primary p-8 text-white h-auto">
-                <h3 className="text-xl font-bold mb-4">Your Referral Engine</h3>
-                <p className="opacity-70 mb-6">Share your link and earn 30% on every checkout.</p>
-                <div className="flex gap-3">
-                  <input readOnly value="nigeriaaischool.com/ref/kola" className="bg-white/10 border border-white/20 rounded-xl px-4 py-3 flex-grow font-mono overflow-auto" />
-                  <button 
-                    onClick={() => {
-                      navigator.clipboard.writeText("nigeriaaischool.com/ref/kola");
-                      window.showToast("Referral link copied to clipboard!");
-                    }}
-                    className="bg-secondary text-white px-6 rounded-xl font-bold"
-                  >
-                    Copy
-                  </button>
-                </div>
-              </GlowCard>
+
             </div>
-            <div className="bg-white rounded-3xl border border-outline-variant/10 overflow-hidden shadow-sm">
+            <div className="bg-white rounded-3xl border border-outline-variant/10 overflow-hidden">
               <table className="w-full text-left">
                 <thead className="bg-surface-container-low border-b border-outline-variant/10">
                   <tr>
@@ -177,7 +275,7 @@ export default function Dashboard() {
                 <tbody className="divide-y divide-outline-variant/5">
                   {[1,2,3,4,5].map(i => (
                     <tr key={i} className="hover:bg-surface-container-lowest transition-colors">
-                      <td className="px-8 py-6 text-on-surface font-medium">Referral: AI Mastery Course</td>
+                      <td className="px-8 py-6 text-on-surface font-medium">Course Sale: AI Mastery Course</td>
                       <td className="px-8 py-6 text-on-surface-variant text-sm">Oct {10+i}, 2024</td>
                       <td className="px-8 py-6 text-secondary font-black">+₦12,500</td>
                     </tr>
@@ -189,25 +287,114 @@ export default function Dashboard() {
         );
       case 'Settings':
         return (
-          <div className="max-w-2xl bg-white p-12 rounded-[2.5rem] border border-outline-variant/10 shadow-sm space-y-8">
+          <div className="max-w-2xl bg-white p-12 rounded-[2.5rem] border border-outline-variant/10 space-y-8">
             <h2 className="text-2xl font-headline font-bold text-primary">Account Settings</h2>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase text-on-surface-variant">Change Password</label>
+                <input type="password" placeholder="••••••••" className="w-full px-4 py-3 bg-surface-container-low rounded-xl border-none focus:ring-2 focus:ring-primary/20" />
+              </div>
+              <div className="flex items-center justify-between p-4 bg-surface-container-low rounded-2xl">
+                <div>
+                  <p className="text-sm font-bold text-primary">Email Notifications</p>
+                  <p className="text-xs text-on-surface-variant">Receive updates about your courses</p>
+                </div>
+                <div className="w-12 h-6 bg-secondary rounded-full relative cursor-pointer">
+                  <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm" />
+                </div>
+              </div>
+              <button className="w-full py-4 bg-primary text-white rounded-xl font-bold">Save Settings</button>
+            </div>
+          </div>
+        );
+      case 'Profile':
+        return (
+          <div className="max-w-2xl bg-white p-12 rounded-[2.5rem] border border-outline-variant/10 space-y-8">
+            <h2 className="text-2xl font-headline font-bold text-primary">User Profile</h2>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 pb-8 border-b border-outline-variant/10">
+              <div className="w-24 h-24 rounded-3xl bg-surface-container flex items-center justify-center overflow-hidden border-2 border-primary/10 relative group">
+                {avatarImage ? (
+                  <img src={avatarImage} alt="User Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <User size={48} className="text-primary/20" />
+                )}
+              </div>
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-3">
+                  <button 
+                    onClick={() => document.getElementById('avatar-upload')?.click()}
+                    className="flex items-center gap-2 text-sm font-bold bg-primary text-white px-4 py-2 rounded-xl hover:bg-primary-container transition-colors"
+                  >
+                    <UploadCloud size={16} /> Upload Photo
+                  </button>
+                  <button 
+                    onClick={startCamera}
+                    className="flex items-center gap-2 text-sm font-bold bg-surface-container text-on-surface-variant px-4 py-2 rounded-xl hover:bg-surface-container-high transition-colors"
+                  >
+                    <Camera size={16} /> Take Photo
+                  </button>
+                </div>
+                <input 
+                  type="file" 
+                  id="avatar-upload" 
+                  className="hidden" 
+                  accept="image/*" 
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (event) => setAvatarImage(event.target?.result as string);
+                      reader.readAsDataURL(file);
+                    }
+                  }} 
+                />
+                <p className="text-xs text-on-surface-variant">JPG, GIF or PNG. Max size of 800K</p>
+              </div>
+            </div>
             <div className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase text-on-surface-variant">First Name</label>
-                  <input defaultValue="Kolawole" className="w-full px-4 py-3 bg-surface-container-low rounded-xl border-none focus:ring-2 focus:ring-primary/20" />
+                  <input value={firstNameInput} onChange={(e) => setFirstNameInput(e.target.value)} className="w-full px-4 py-3 bg-surface-container-low rounded-xl border-none focus:ring-2 focus:ring-primary/20" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase text-on-surface-variant">Last Name</label>
-                  <input defaultValue="Abidemi" className="w-full px-4 py-3 bg-surface-container-low rounded-xl border-none focus:ring-2 focus:ring-primary/20" />
+                  <input value={lastNameInput} onChange={(e) => setLastNameInput(e.target.value)} className="w-full px-4 py-3 bg-surface-container-low rounded-xl border-none focus:ring-2 focus:ring-primary/20" />
                 </div>
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-black uppercase text-on-surface-variant">Email Address</label>
-                <input defaultValue="kola@nigeriaaischool.com" className="w-full px-4 py-3 bg-surface-container-low rounded-xl border-none focus:ring-2 focus:ring-primary/20" />
+                <input value={emailInput} onChange={(e) => setEmailInput(e.target.value)} className="w-full px-4 py-3 bg-surface-container-low rounded-xl border-none focus:ring-2 focus:ring-primary/20" />
               </div>
-              <button className="w-full py-4 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20">Update Profile</button>
+              
+              <button onClick={handleUpdateProfile} disabled={isUpdating} className="w-full py-4 bg-primary text-white rounded-xl font-bold disabled:opacity-50">
+                {isUpdating ? 'Updating...' : 'Update Profile'}
+              </button>
             </div>
+            {/* CAMERA MODAL */}
+            {showCamera && (
+              <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6">
+                <div className="bg-white rounded-[2.5rem] overflow-hidden max-w-xl w-full relative">
+                  <button onClick={stopCamera} className="absolute top-6 right-6 z-10 p-3 bg-black/10 hover:bg-black/20 rounded-full transition-colors text-white">
+                    <X size={24} />
+                  </button>
+                  <div className="aspect-square bg-black relative">
+                    <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
+                    <canvas ref={canvasRef} className="hidden" />
+                  </div>
+                  <div className="p-8 text-center space-y-6">
+                    <h3 className="text-xl font-headline font-bold text-primary">Take a Profile Picture</h3>
+                    <p className="text-sm text-on-surface-variant">Make sure your face is clearly visible in the frame.</p>
+                    <button 
+                      onClick={takePhoto}
+                      className="w-20 h-20 bg-primary text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all mx-auto"
+                    >
+                      <Camera size={32} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         );
       default:
@@ -230,7 +417,7 @@ export default function Dashboard() {
                   className={cn(
                     "w-full flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold transition-all",
                     activeTab === item.name 
-                      ? "bg-primary text-white shadow-lg shadow-primary/20" 
+                      ? "bg-primary text-white" 
                       : "text-on-surface-variant hover:bg-surface-container-low hover:text-primary"
                   )}
                 >
@@ -242,7 +429,10 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <button className="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-red-500 hover:bg-red-50 transition-all">
+        <button 
+          onClick={handleLogout}
+          className="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-red-500 hover:bg-red-50 transition-all"
+        >
           <LogOut size={20} />
           Logout
         </button>
@@ -254,16 +444,16 @@ export default function Dashboard() {
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
             <h1 className="text-3xl font-headline font-bold text-primary mb-2">
-              {activeTab === 'Overview' ? 'Welcome back, Kolawole! 👋' : activeTab}
+              {activeTab === 'Overview' ? `Welcome back, ${userName}! 👋` : activeTab}
             </h1>
             <p className="text-on-surface-variant">Manage your learning and earning in one place.</p>
           </div>
           <div className="flex items-center gap-4">
-             <button className="p-3 bg-white border border-outline-variant/10 rounded-xl text-on-surface-variant hover:text-primary relative group transition-all">
+              <button className="p-3 bg-white border border-outline-variant/10 rounded-xl text-on-surface-variant hover:text-primary relative group transition-all">
                 <Bell size={20} />
-                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white shadow-sm" />
+                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
              </button>
-             <Link to="/creator-dashboard" className="bg-secondary text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-secondary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2">
+              <Link to="/creator-dashboard" className="bg-secondary text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2">
                 <Rocket size={18} />
                 Upload Course
               </Link>

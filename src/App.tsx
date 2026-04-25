@@ -15,7 +15,10 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import CreatorDashboard from './pages/CreatorDashboard';
 import CreatorProfile from './pages/CreatorProfile';
+import AdminDashboard from './pages/AdminDashboard';
 import { ToastContainer } from './components/Toast';
+import { AuthProvider } from './contexts/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 
 import HowItWorks from './pages/HowItWorks';
 
@@ -24,24 +27,48 @@ import ContactUs from './pages/ContactUs';
 
 export default function App() {
   return (
-    <Router>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/courses" element={<Courses />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/creator-dashboard" element={<CreatorDashboard />} />
-          <Route path="/how-it-works" element={<HowItWorks />} />
-          <Route path="/about" element={<AboutUs />} />
-          <Route path="/contact-us" element={<ContactUs />} />
-          <Route path="/become-creator" element={<BecomeCreator />} />
-          <Route path="/course/:id" element={<CourseDetail />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/creator/:id" element={<CreatorProfile />} />
-        </Routes>
-      </Layout>
-      <ToastContainer />
-    </Router>
+    <AuthProvider>
+      <Router>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/courses" element={<Courses />} />
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/creator-dashboard" 
+              element={
+                <ProtectedRoute>
+                  <CreatorDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin" 
+              element={
+                <ProtectedRoute>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route path="/how-it-works" element={<HowItWorks />} />
+            <Route path="/about" element={<AboutUs />} />
+            <Route path="/contact-us" element={<ContactUs />} />
+            <Route path="/become-creator" element={<BecomeCreator />} />
+            <Route path="/course/:id" element={<CourseDetail />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/creator/:id" element={<CreatorProfile />} />
+          </Routes>
+        </Layout>
+        <ToastContainer />
+      </Router>
+    </AuthProvider>
   );
 }

@@ -4,7 +4,7 @@ import { ArrowRight, Sparkles, Share2, TrendingUp, ShieldCheck, CreditCard, Chev
 import { motion } from 'motion/react';
 import { COURSES, CREATORS } from '../constants';
 import CourseCard from '../components/CourseCard';
-import { GlowCard } from '../components/ui/spotlight-card';
+import GlowCard from '../components/ui/spotlight-card';
 import { cn } from '../lib/utils';
 
 export default function Home() {
@@ -19,7 +19,7 @@ export default function Home() {
             transition={{ duration: 0.6 }}
             className="z-10"
           >
-            <h1 className="font-headline font-extrabold text-5xl md:text-7xl text-primary tracking-tight leading-[1.1]">
+            <h1 className="font-headline font-extrabold text-4xl md:text-6xl text-primary tracking-tight leading-[1.1]">
               Learn AI.<br />
               Build Skills.<br />
               <span className="text-secondary">Earn Globally.</span>
@@ -30,7 +30,7 @@ export default function Home() {
             <div className="flex flex-wrap gap-3 mb-8">
               <Link 
                 to="/courses" 
-                className="bg-primary text-white px-6 md:px-8 py-3.5 md:py-4 rounded-xl font-bold text-base md:text-lg shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+                className="bg-primary text-white px-6 md:px-8 py-3.5 md:py-4 rounded-xl font-bold text-base md:text-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
               >
                 🚀 Start Learning
               </Link>
@@ -54,7 +54,7 @@ export default function Home() {
           >
             <div className="absolute -top-12 -right-12 w-64 h-64 bg-secondary/10 rounded-full blur-3xl" />
             <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl rotate-2">
+            <div className="relative rounded-3xl overflow-hidden rotate-2">
               <img 
                 src="https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=1000" 
                 alt="AI Visualization" 
@@ -66,49 +66,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 🔥 VALUE PROPOSITION SECTION */}
-      <section className="max-w-7xl mx-auto px-6 py-12">
-        <div className="bg-primary rounded-[2.5rem] p-8 md:p-12 lg:p-20 text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-secondary/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-          <div className="relative z-10 grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="font-headline font-bold text-3xl md:text-5xl mb-6">Not Just Learning — A Complete AI Economy</h2>
-              <p className="text-white/70 text-base md:text-lg mb-8 leading-relaxed">
-                Most platforms only teach. We go further. At Nigeria AI School, you can:
-              </p>
-              <ul className="space-y-4 mb-8">
-                {[
-                  "Learn in-demand AI and tech skills",
-                  "Sell your own courses to a global audience",
-                  "Earn by sharing courses through your unique link"
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
-                      <ShieldCheck size={14} className="text-white" />
-                    </div>
-                    <span className="text-white/90 font-medium">{item}</span>
-                  </li>
-                ))}
-              </ul>
-              <p className="text-2xl font-headline font-bold text-secondary-fixed-dim">
-                This is where knowledge becomes income.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10">
-                <TrendingUp size={32} className="text-secondary mb-4" />
-                <h4 className="font-bold text-xl mb-2">Growth</h4>
-                <p className="text-sm text-white/60">Scale your skills and earnings simultaneously.</p>
-              </div>
-              <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10 mt-8">
-                <Globe size={32} className="text-secondary mb-4" />
-                <h4 className="font-bold text-xl mb-2">Global</h4>
-                <p className="text-sm text-white/60">Connect with opportunities worldwide.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* 🎯 HOW IT WORKS */}
       <section className="max-w-7xl mx-auto px-6 overflow-visible">
@@ -117,13 +74,13 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-6 py-2 bg-primary/5 rounded-full text-primary font-black text-xs tracking-widest uppercase mb-6 border border-primary/10 shadow-sm"
+            className="inline-flex items-center gap-2 px-6 py-2 bg-primary/5 rounded-full text-primary font-black text-xs tracking-widest uppercase mb-6 border border-primary/10"
           >
             <Sparkles size={14} className="text-secondary" />
             THE NIGERIA AI SCHOOL PROCESS
           </motion.div>
-          <h2 className="font-headline font-black text-3xl md:text-6xl text-primary mb-6 leading-tight tracking-tight">Simple. Powerful. <span className="text-secondary decoration-secondary/30 underline underline-offset-[12px]">Profitable.</span></h2>
-          <p className="text-on-surface-variant max-w-2xl mx-auto text-lg md:text-xl font-medium opacity-80 leading-relaxed">Three simple steps to build your technical arsenal and join the global AI economy.</p>
+          <h2 className="font-headline font-black text-3xl md:text-5xl text-primary mb-6 leading-tight tracking-tight">Simple. Powerful. <span className="text-secondary decoration-secondary/30 underline underline-offset-[12px]">Profitable.</span></h2>
+          <p className="text-on-surface-variant max-w-2xl mx-auto text-base md:text-lg font-medium opacity-80 leading-relaxed">Three simple steps to build your technical arsenal and join the global AI economy.</p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16">
@@ -181,7 +138,7 @@ export default function Home() {
                 glowColor={step.glow}
                 customSize={true}
                 className={cn(
-                  "text-center p-8 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] bg-white border shadow-2xl transition-all duration-500 h-auto z-10 relative overflow-hidden",
+                  "text-center p-8 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] bg-white border transition-all duration-500 h-auto z-10 relative overflow-hidden",
                   step.border
                 )}
               >
@@ -192,9 +149,8 @@ export default function Home() {
                 )} />
 
                 <div className={cn(
-                  "w-20 h-20 md:w-24 md:h-24 rounded-3xl md:rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 md:mb-10 transition-all duration-700 group-hover:shadow-2xl group-hover:scale-110 group-hover:rotate-12 relative z-10",
-                  step.accent,
-                  step.shadow
+                  "w-20 h-20 md:w-24 md:h-24 rounded-3xl md:rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 md:mb-10 transition-all duration-700 group-hover:scale-110 group-hover:rotate-12 relative z-10",
+                  step.accent
                 )}>
                   <div className="absolute inset-0 bg-white/20 rounded-3xl md:rounded-[2.5rem] animate-pulse" />
                   <step.icon size={40} className="text-white drop-shadow-xl relative z-20 md:w-12 md:h-12" strokeWidth={2.5} />
@@ -203,7 +159,7 @@ export default function Home() {
                 <div className="space-y-6 relative z-10">
                   <div className="flex items-center justify-center gap-3">
                     <div className={cn("h-px w-8 bg-gradient-to-r from-transparent", step.gradient)} />
-                    <h3 className={cn("font-headline font-black text-4xl bg-clip-text text-transparent bg-gradient-to-br tracking-tight", step.gradient)}>
+                    <h3 className={cn("font-headline font-black text-2xl md:text-3xl bg-clip-text text-transparent bg-gradient-to-br tracking-tight", step.gradient)}>
                       {step.title}
                     </h3>
                     <div className={cn("h-px w-8 bg-gradient-to-l from-transparent", step.gradient)} />
@@ -240,7 +196,7 @@ export default function Home() {
         >
           <Link 
             to="/courses" 
-            className="group relative inline-flex items-center gap-4 bg-primary text-white px-8 md:px-16 py-4 md:py-6 rounded-2xl md:rounded-[2rem] font-black text-lg md:text-2xl shadow-2xl shadow-primary/40 hover:shadow-primary/60 hover:scale-105 active:scale-95 transition-all overflow-hidden"
+            className="group relative inline-flex items-center gap-4 bg-primary text-white px-8 md:px-16 py-4 md:py-6 rounded-2xl md:rounded-[2rem] font-black text-lg md:text-xl hover:scale-105 active:scale-95 transition-all overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
             🚀 Ready to Begin? <ArrowRight size={24} className="group-hover:translate-x-2 transition-transform duration-300 md:w-7 md:h-7" strokeWidth={3} />
@@ -252,7 +208,7 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-6">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8 text-left">
           <div className="max-w-2xl">
-            <h2 className="font-headline font-bold text-3xl md:text-4xl text-primary mb-6">Learn Skills That <span className="text-ai-purple">Matter</span></h2>
+            <h2 className="font-headline font-bold text-2xl md:text-3xl text-primary mb-6">Learn Skills That <span className="text-ai-purple">Matter</span></h2>
             <p className="text-on-surface-variant text-base md:text-lg leading-relaxed font-medium">
               Join thousands of students mastering AI from the ground up. Our curriculum is built by industry experts to ensure you're ready for the global market.
             </p>
@@ -277,23 +233,23 @@ export default function Home() {
             <img 
               src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=800" 
               alt="Creator teaching" 
-              className="relative z-10 rounded-[3rem] shadow-2xl object-cover w-full h-[550px] transition-transform duration-700 group-hover:-translate-y-2"
+              className="relative z-10 rounded-[3rem] object-cover w-full h-[550px] transition-transform duration-700 group-hover:-translate-y-2"
               referrerPolicy="no-referrer"
             />
-            <div className="absolute -bottom-10 -right-10 bg-white p-8 rounded-[2rem] shadow-2xl z-20 hidden lg:block border border-outline-variant/10">
+            <div className="absolute -bottom-10 -right-10 bg-white p-8 rounded-[2rem] z-20 hidden lg:block border border-outline-variant/10">
                <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-secondary/10 rounded-full flex items-center justify-center text-secondary">
                     <TrendingUp size={24} />
                   </div>
                   <div>
-                    <p className="text-2xl font-black text-primary">₦500k+</p>
+                    <p className="text-xl font-black text-primary">₦500k+</p>
                     <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Avg. Monthly Earnings</p>
                   </div>
                </div>
             </div>
           </div>
           <div className="space-y-8">
-            <h2 className="font-headline font-black text-3xl md:text-5xl text-primary leading-tight">Turn Your Knowledge Into <span className="text-secondary">Generational Income</span></h2>
+            <h2 className="font-headline font-black text-2xl md:text-4xl text-primary leading-tight">Turn Your Knowledge Into <span className="text-secondary">Generational Income</span></h2>
             <p className="text-on-surface-variant text-lg md:text-xl leading-relaxed font-medium">
               Teach what you know. Reach a global audience. Earn without limits. We provide the ecosystem, you provide the expertise.
             </p>
@@ -314,7 +270,7 @@ export default function Home() {
             <div className="pt-6">
               <Link 
                 to="/become-creator" 
-                className="inline-flex bg-primary text-white px-10 md:px-12 py-4 md:py-5 rounded-xl md:rounded-2xl font-black text-lg md:text-xl shadow-2xl shadow-primary/30 hover:scale-105 active:scale-95 transition-all"
+                className="inline-flex bg-primary text-white px-10 md:px-12 py-4 md:py-5 rounded-xl md:rounded-2xl font-black text-lg md:text-xl hover:scale-105 active:scale-95 transition-all"
               >
                 Become a Creator →
               </Link>
@@ -325,13 +281,13 @@ export default function Home() {
 
       {/* 🔗 AFFILIATE / EARNING SYSTEM */}
       <section className="max-w-7xl mx-auto px-6">
-        <div className="bg-secondary rounded-[3rem] p-8 md:p-16 lg:p-24 text-white relative overflow-hidden shadow-2xl shadow-secondary/20">
+        <div className="bg-secondary rounded-[3rem] p-8 md:p-16 lg:p-24 text-white relative overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
           <div className="absolute bottom-0 left-0 w-96 h-96 bg-black/10 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
           
           <div className="relative z-10 text-center max-w-4xl mx-auto">
-            <h2 className="font-headline font-black text-3xl md:text-6xl mb-8 leading-tight">Earn Daily Even Without <br/><span className="text-secondary-fixed-dim italic">Creating Courses</span></h2>
-            <p className="text-white/80 text-lg md:text-2xl mb-12 leading-relaxed max-w-3xl mx-auto font-medium">
+            <h2 className="font-headline font-black text-2xl md:text-4xl mb-8 leading-tight">Earn Daily Even Without <br/><span className="text-secondary-fixed-dim italic">Creating Courses</span></h2>
+            <p className="text-white/80 text-base md:text-lg mb-12 leading-relaxed max-w-3xl mx-auto font-medium">
               Not a creator? No problem. Share any course using your personalized link and earn <span className="text-white font-black underline decoration-secondary-fixed-dim underline-offset-8">up to 30% commission</span> every time someone buys.
             </p>
             
@@ -347,7 +303,7 @@ export default function Home() {
                   customSize={true}
                   className="bg-white/10 backdrop-blur-xl p-8 md:p-10 rounded-[2rem] md:rounded-[2.5rem] border border-white/20 flex flex-col items-center gap-6 h-auto transition-transform hover:-translate-y-2 duration-500"
                 >
-                  <div className="w-14 h-14 md:w-16 md:h-16 bg-white rounded-xl md:rounded-2xl flex items-center justify-center text-secondary shadow-lg">
+                  <div className="w-14 h-14 md:w-16 md:h-16 bg-white rounded-xl md:rounded-2xl flex items-center justify-center text-secondary">
                     <item.icon size={28} className="md:w-8 md:h-8" />
                   </div>
                   <span className="font-black text-base md:text-lg tracking-tight leading-tight">{item.label}</span>
@@ -356,12 +312,12 @@ export default function Home() {
             </div>
             
             <div className="flex flex-col items-center gap-8">
-              <p className="text-2xl md:text-3xl font-headline font-black italic color-secondary-fixed-dim drop-shadow-md">
+              <p className="text-xl md:text-2xl font-headline font-black italic color-secondary-fixed-dim drop-shadow-md">
                 Your network is your net worth.
               </p>
               <Link 
                 to="/dashboard" 
-                className="inline-flex bg-white text-secondary px-10 md:px-14 py-4 md:py-5 rounded-xl md:rounded-2xl font-black text-xl md:text-2xl shadow-2xl hover:scale-105 active:scale-95 transition-all"
+                className="inline-flex bg-white text-secondary px-10 md:px-14 py-4 md:py-5 rounded-xl md:rounded-2xl font-black text-lg md:text-xl hover:scale-105 active:scale-95 transition-all"
               >
                 Start Earning Now →
               </Link>
@@ -376,7 +332,7 @@ export default function Home() {
           <Globe size={14} />
           GLOBAL REACH
         </div>
-        <h2 className="font-headline font-bold text-4xl text-primary mb-6">Built in Nigeria. Open to the World.</h2>
+        <h2 className="font-headline font-bold text-3xl text-primary mb-6">Built in Nigeria. Open to the World.</h2>
         <p className="text-on-surface-variant text-lg max-w-3xl mx-auto leading-relaxed">
           Nigeria AI School is designed to empower Africans and connect them to global opportunities. Learn from anywhere. Sell to anywhere. Earn from everywhere.
         </p>
@@ -385,7 +341,7 @@ export default function Home() {
       {/* 🏆 SOCIAL PROOF */}
       <section className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
-          <h2 className="font-headline font-bold text-4xl text-primary mb-4">Trusted by Future Builders</h2>
+          <h2 className="font-headline font-bold text-3xl text-primary mb-4">Trusted by Future Builders</h2>
           <p className="text-on-surface-variant text-lg">Thousands of learners and creators are already building their future with Nigeria AI School.</p>
         </div>
         <div className="flex flex-wrap justify-center gap-12">
@@ -405,7 +361,7 @@ export default function Home() {
                   />
                 </div>
                 {creator.isVerified && (
-                  <div className="absolute bottom-0 right-0 w-8 h-8 bg-secondary-fixed-dim rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                  <div className="absolute bottom-0 right-0 w-8 h-8 bg-secondary-fixed-dim rounded-full flex items-center justify-center border-2 border-white">
                     <ShieldCheck size={16} className="text-white" fill="currentColor" />
                   </div>
                 )}
@@ -423,20 +379,20 @@ export default function Home() {
           <div className="absolute inset-0 opacity-10 pointer-events-none">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
           </div>
-          <h2 className="font-headline font-bold text-3xl md:text-6xl text-white mb-8 relative z-10">Your Future in Tech Starts Here</h2>
+          <h2 className="font-headline font-bold text-2xl md:text-4xl text-white mb-8 relative z-10">Your Future in Tech Starts Here</h2>
           <p className="text-white/70 text-lg md:text-xl mb-12 max-w-2xl mx-auto relative z-10">
             Whether you want to learn, teach, or earn — this is your platform. Don’t just watch the future happen. Be part of it.
           </p>
           <div className="flex flex-wrap justify-center gap-4 md:gap-6 relative z-10">
             <Link 
               to="/courses" 
-              className="bg-white text-primary px-8 md:px-10 py-4 md:py-5 rounded-xl md:rounded-2xl font-bold text-lg md:text-xl shadow-2xl hover:scale-105 transition-all"
+              className="bg-white text-primary px-8 md:px-10 py-4 md:py-5 rounded-xl md:rounded-2xl font-bold text-lg md:text-xl hover:scale-105 transition-all"
             >
               Start Learning Now
             </Link>
             <Link 
               to="/become-creator" 
-              className="bg-secondary text-white px-8 md:px-10 py-4 md:py-5 rounded-xl md:rounded-2xl font-bold text-lg md:text-xl shadow-2xl hover:scale-105 transition-all"
+              className="bg-secondary text-white px-8 md:px-10 py-4 md:py-5 rounded-xl md:rounded-2xl font-bold text-lg md:text-xl hover:scale-105 transition-all"
             >
               Become a Creator
             </Link>
