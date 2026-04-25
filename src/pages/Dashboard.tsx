@@ -404,7 +404,7 @@ export default function Dashboard() {
 
   return (
     <div className="flex min-h-screen bg-surface-container-low">
-      {/* Sidebar */}
+      {/* Sidebar - Desktop only */}
       <aside className="w-72 bg-white border-r border-outline-variant/10 hidden lg:flex flex-col p-8 sticky top-20 h-[calc(100vh-80px)]">
         <div className="space-y-12 flex-grow">
           <div className="space-y-4">
@@ -439,29 +439,56 @@ export default function Dashboard() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-grow p-8 lg:p-12 space-y-12 overflow-x-hidden">
+      <main className="flex-grow p-4 sm:p-6 lg:p-12 space-y-8 lg:space-y-12 overflow-x-hidden pb-24 lg:pb-12">
         {/* Header */}
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6">
           <div>
-            <h1 className="text-3xl font-headline font-bold text-primary mb-2">
+            <h1 className="text-2xl md:text-3xl font-headline font-bold text-primary mb-1 md:mb-2">
               {activeTab === 'Overview' ? `Welcome back, ${userName}! 👋` : activeTab}
             </h1>
-            <p className="text-on-surface-variant">Manage your learning and earning in one place.</p>
+            <p className="text-sm md:text-base text-on-surface-variant">Manage your learning and earning in one place.</p>
           </div>
-          <div className="flex items-center gap-4">
-              <button className="p-3 bg-white border border-outline-variant/10 rounded-xl text-on-surface-variant hover:text-primary relative group transition-all">
-                <Bell size={20} />
-                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
+          <div className="flex items-center gap-3 md:gap-4">
+              <button className="p-2.5 md:p-3 bg-white border border-outline-variant/10 rounded-xl text-on-surface-variant hover:text-primary relative group transition-all">
+                <Bell size={18} />
+                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
              </button>
-              <Link to="/creator-dashboard" className="bg-secondary text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2">
-                <Rocket size={18} />
-                Upload Course
+              <Link to="/creator-dashboard" className="bg-secondary text-white px-4 md:px-6 py-2.5 md:py-3 rounded-xl font-bold transition-all flex items-center gap-2 text-sm md:text-base">
+                <Rocket size={16} />
+                <span className="hidden sm:inline">Upload Course</span>
+                <span className="sm:hidden">Upload</span>
               </Link>
           </div>
         </header>
 
         {renderContent()}
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-outline-variant/10 flex items-center justify-around px-2 py-2 lg:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
+        {sidebarItems.map((item) => (
+          <button
+            key={item.name}
+            onClick={() => setActiveTab(item.name)}
+            className={cn(
+              "flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all min-w-[60px]",
+              activeTab === item.name
+                ? "text-primary"
+                : "text-on-surface-variant/60"
+            )}
+          >
+            <item.icon size={20} strokeWidth={activeTab === item.name ? 2.5 : 1.5} />
+            <span className={cn("text-[10px]", activeTab === item.name ? "font-bold" : "font-medium")}>{item.name === 'My Courses' ? 'Courses' : item.name}</span>
+          </button>
+        ))}
+        <button
+          onClick={handleLogout}
+          className="flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-red-400 min-w-[60px]"
+        >
+          <LogOut size={20} strokeWidth={1.5} />
+          <span className="text-[10px] font-medium">Logout</span>
+        </button>
+      </nav>
     </div>
   );
 }

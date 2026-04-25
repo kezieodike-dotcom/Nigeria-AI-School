@@ -191,14 +191,14 @@ export default function CreatorDashboard() {
         </div>
       </aside>
 
-      <main className="flex-grow p-8 lg:p-12 space-y-12 overflow-x-hidden">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <main className="flex-grow p-4 sm:p-6 lg:p-12 space-y-8 lg:space-y-12 overflow-x-hidden pb-24 lg:pb-12">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6">
           <div>
-            <h1 className="text-3xl font-headline font-bold text-primary mb-2">Creator Hub</h1>
-            <p className="text-on-surface-variant">Your engine for impact and income.</p>
+            <h1 className="text-2xl md:text-3xl font-headline font-bold text-primary mb-1">Creator Hub</h1>
+            <p className="text-sm md:text-base text-on-surface-variant">Your engine for impact and income.</p>
           </div>
-          <button onClick={() => setShowUploadModal(true)} className="bg-primary text-white px-8 py-3.5 rounded-2xl font-black flex items-center gap-2">
-            <Upload size={18} /> Launch New Course
+          <button onClick={() => setShowUploadModal(true)} className="bg-primary text-white px-6 md:px-8 py-3 md:py-3.5 rounded-2xl font-black flex items-center gap-2 text-sm md:text-base">
+            <Upload size={16} /> Launch New Course
           </button>
         </header>
 
@@ -302,6 +302,33 @@ export default function CreatorDashboard() {
           </div>
         )}
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-outline-variant/10 flex items-center justify-around px-2 py-2 lg:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
+        {[
+          { name: 'Overview', icon: Layout },
+          { name: 'Courses', icon: BookOpen },
+          { name: 'Enrollments', icon: Users },
+          { name: 'Payouts', icon: DollarSign },
+          { name: 'Analytics', icon: BarChart3 }
+        ].map((item) => (
+          <button
+            key={item.name}
+            onClick={() => setActiveTab(item.name)}
+            className={cn(
+              "flex flex-col items-center gap-1 px-2 py-1.5 rounded-xl transition-all min-w-[52px]",
+              activeTab === item.name ? "text-primary" : "text-on-surface-variant/60"
+            )}
+          >
+            <item.icon size={20} strokeWidth={activeTab === item.name ? 2.5 : 1.5} />
+            <span className={cn("text-[10px]", activeTab === item.name ? "font-bold" : "font-medium")}>{item.name}</span>
+          </button>
+        ))}
+        <button onClick={handleLogout} className="flex flex-col items-center gap-1 px-2 py-1.5 rounded-xl text-red-400 min-w-[52px]">
+          <LogOut size={20} strokeWidth={1.5} />
+          <span className="text-[10px] font-medium">Logout</span>
+        </button>
+      </nav>
     </div>
   );
 }

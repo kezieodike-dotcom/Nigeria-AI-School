@@ -35,8 +35,18 @@
 }
 
 @layer base {
+  html {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
   body {
     @apply bg-surface text-on-surface font-sans;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    overscroll-behavior-y: auto;
+  }
+  * {
+    -webkit-tap-highlight-color: transparent;
   }
 }
 

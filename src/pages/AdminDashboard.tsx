@@ -195,17 +195,17 @@ export default function AdminDashboard() {
         </div>
       </aside>
 
-      <main className="flex-grow p-8 lg:p-12 space-y-12 overflow-x-hidden relative">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <main className="flex-grow p-4 sm:p-6 lg:p-12 space-y-8 lg:space-y-12 overflow-x-hidden relative pb-24 lg:pb-12">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6">
           <div>
-            <h1 className="text-3xl font-headline font-black text-primary mb-2 flex items-center gap-3">
+            <h1 className="text-xl md:text-3xl font-headline font-black text-primary mb-1 md:mb-2 flex items-center gap-2 md:gap-3 flex-wrap">
                Platform Administration
                <span className="text-[10px] bg-red-100 text-red-600 px-2 py-1 rounded-md uppercase tracking-widest">Restricted</span>
             </h1>
-            <p className="text-on-surface-variant">Monitor health, manage users, and control operations.</p>
+            <p className="text-sm md:text-base text-on-surface-variant">Monitor health, manage users, and control operations.</p>
           </div>
-          <div className="flex gap-4">
-             <button className="bg-white border border-outline-variant/20 text-primary px-6 py-3 rounded-xl font-bold hover:bg-surface-container-lowest transition-all flex items-center gap-2">
+          <div className="flex gap-3 md:gap-4">
+             <button className="bg-white border border-outline-variant/20 text-primary px-4 md:px-6 py-2.5 md:py-3 rounded-xl font-bold hover:bg-surface-container-lowest transition-all flex items-center gap-2 text-sm md:text-base">
                Export Data
              </button>
           </div>
@@ -385,6 +385,30 @@ export default function AdminDashboard() {
         )}
 
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-outline-variant/10 flex items-center justify-around px-1 py-2 lg:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
+        {[
+          { name: 'Overview', icon: Activity },
+          { name: 'Users', icon: Users },
+          { name: 'Videos', icon: Video },
+          { name: 'Courses', icon: BookOpen },
+          { name: 'Payouts', icon: DollarSign },
+          { name: 'Settings', icon: SettingsIcon }
+        ].map((item) => (
+          <button
+            key={item.name}
+            onClick={() => setActiveTab(item.name)}
+            className={cn(
+              "flex flex-col items-center gap-0.5 px-1.5 py-1.5 rounded-xl transition-all min-w-[46px]",
+              activeTab === item.name ? "text-primary" : "text-on-surface-variant/60"
+            )}
+          >
+            <item.icon size={18} strokeWidth={activeTab === item.name ? 2.5 : 1.5} />
+            <span className={cn("text-[9px]", activeTab === item.name ? "font-bold" : "font-medium")}>{item.name}</span>
+          </button>
+        ))}
+      </nav>
     </div>
   );
 }
