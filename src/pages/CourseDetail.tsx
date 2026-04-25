@@ -42,11 +42,11 @@ export default function CourseDetail() {
               )}
             </div>
             
-            <h1 className="font-headline font-extrabold text-4xl md:text-5xl lg:text-6xl tracking-tight leading-[1.1]">
+            <h1 className="font-headline font-extrabold text-3xl md:text-5xl lg:text-6xl tracking-tight leading-[1.1]">
               {course.title}
             </h1>
             
-            <p className="text-xl text-white/80 leading-relaxed max-w-3xl">
+            <p className="text-lg md:text-xl text-white/80 leading-relaxed max-w-3xl">
               {course.description}
             </p>
 
@@ -84,7 +84,7 @@ export default function CourseDetail() {
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-3 gap-12 -mt-12 lg:-mt-24 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 grid lg:grid-cols-3 gap-8 lg:gap-12 -mt-10 md:-mt-12 lg:-mt-24 relative z-10">
         
         {/* Main Content Area */}
         <div className="lg:col-span-2 space-y-16">
@@ -115,9 +115,9 @@ export default function CourseDetail() {
 
           {/* Curriculum */}
           <section>
-            <div className="flex justify-between items-end mb-6">
-              <h2 className="font-headline font-bold text-3xl text-primary">Course Content</h2>
-              <span className="text-on-surface-variant">{curriculum.length} modules • {course.duration}</span>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-2 mb-6">
+              <h2 className="font-headline font-bold text-2xl md:text-3xl text-primary">Course Content</h2>
+              <span className="text-sm text-on-surface-variant">{curriculum.length} modules • {course.duration}</span>
             </div>
             
             <div className="space-y-4">
@@ -170,12 +170,12 @@ export default function CourseDetail() {
 
         </div>
 
-        {/* 🚀 Sticky Sidebar Checkout */}
-        <div className="lg:col-span-1">
+        {/* 🚀 Sticky Sidebar Checkout - Reordered for mobile to appear at top if needed, but keeping standard flow for now with optimized mobile padding */}
+        <div className="lg:col-span-1 order-first lg:order-last">
           <GlowCard 
             glowColor="blue"
             customSize={true}
-            className="bg-white rounded-3xl border border-outline-variant/20 shadow-xl overflow-hidden sticky top-28 !p-0 h-auto"
+            className="bg-white rounded-3xl border border-outline-variant/20 shadow-xl overflow-hidden lg:sticky lg:top-28 !p-0 h-auto"
           >
             {/* Video Preview / Active Player */}
             {activeVideo ? (
@@ -209,7 +209,7 @@ export default function CourseDetail() {
               </div>
             )}
 
-            <div className="p-8">
+            <div className="p-6 md:p-8">
               <div className="flex items-end gap-3 mb-6">
                 <span className="text-4xl font-black text-primary tracking-tight">
                    ₦{course.price.toLocaleString()}

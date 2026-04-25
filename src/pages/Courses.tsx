@@ -21,28 +21,28 @@ export default function Courses() {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-12 space-y-16">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12 space-y-12 md:space-y-16">
       {/* Hero & Search */}
       <section className="space-y-8">
-        <h1 className="text-4xl md:text-6xl font-extrabold font-headline tracking-tight text-primary mb-6 leading-[1.1]">
+        <h1 className="text-3xl md:text-6xl font-extrabold font-headline tracking-tight text-primary mb-4 md:mb-6 leading-[1.1]">
           Learn Skills That <br className="hidden md:block" /><span className="text-secondary italic">Matter.</span>
         </h1>
-        <p className="text-on-surface-variant text-lg max-w-2xl mb-10 leading-relaxed min-h-[4rem] font-medium">
+        <p className="text-on-surface-variant text-base md:text-lg max-w-2xl mb-8 md:mb-10 leading-relaxed min-h-[4rem] font-medium">
           {displayText}
           <span className="inline-block w-1.5 h-5 ml-1 bg-secondary animate-pulse align-middle" />
         </p>
 
-        <div className="glass-effect p-8 rounded-[2rem] space-y-8 border border-white/40">
+        <div className="glass-effect p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] space-y-6 md:space-y-8 border border-white/40">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-grow group">
               <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors" size={22} />
               <input 
                 type="text" 
                 placeholder="Search for AI, ML, Data Science..." 
-                className="w-full pl-14 pr-6 py-4.5 md:py-5 bg-white/50 backdrop-blur-sm border border-outline-variant/10 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:bg-white focus:border-primary/30 transition-all text-on-surface font-medium placeholder:text-on-surface-variant/50"
+                className="w-full pl-12 md:pl-14 pr-6 py-3.5 md:py-5 bg-white/50 backdrop-blur-sm border border-outline-variant/10 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:bg-white focus:border-primary/30 transition-all text-on-surface text-sm md:text-base font-medium placeholder:text-on-surface-variant/50"
               />
             </div>
-            <button className="bg-primary text-white px-10 py-4.5 md:py-5 rounded-2xl font-black text-sm uppercase tracking-widest hover:opacity-90 active:scale-95 transition-all shadow-xl shadow-primary/20">
+            <button className="bg-primary text-white px-8 md:px-10 py-3.5 md:py-5 rounded-2xl font-black text-xs md:text-sm uppercase tracking-widest hover:opacity-90 active:scale-95 transition-all shadow-xl shadow-primary/20">
               Find Your Course
             </button>
           </div>

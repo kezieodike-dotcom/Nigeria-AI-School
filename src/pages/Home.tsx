@@ -11,15 +11,15 @@ export default function Home() {
   return (
     <div className="space-y-24 pb-24">
       {/* 🏠 HERO SECTION */}
-      <section className="relative overflow-hidden py-24 md:py-32 bg-surface-container-lowest">
-        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+      <section className="relative overflow-hidden py-16 md:py-32 bg-surface-container-lowest">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 grid md:grid-cols-2 gap-12 items-center">
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
             className="z-10"
           >
-            <h1 className="font-headline font-extrabold text-4xl md:text-6xl text-primary tracking-tight leading-[1.1]">
+            <h1 className="font-headline font-extrabold text-3xl md:text-6xl text-primary tracking-tight leading-[1.1]">
               Learn AI.<br />
               Build Skills.<br />
               <span className="text-secondary">Earn Globally.</span>
@@ -30,13 +30,13 @@ export default function Home() {
             <div className="flex flex-wrap gap-3 mb-8">
               <Link 
                 to="/courses" 
-                className="bg-primary text-white px-6 md:px-8 py-3.5 md:py-4 rounded-xl font-bold text-base md:text-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+                className="flex-grow sm:flex-grow-0 text-center bg-primary text-white px-6 md:px-8 py-3.5 md:py-4 rounded-xl font-bold text-base md:text-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
               >
                 🚀 Start Learning
               </Link>
               <Link 
                 to="/become-creator" 
-                className="bg-surface-container-high text-primary px-6 md:px-8 py-3.5 md:py-4 rounded-xl font-bold text-base md:text-lg hover:bg-surface-container-highest active:scale-95 transition-all flex items-center gap-2"
+                className="flex-grow sm:flex-grow-0 text-center bg-surface-container-high text-primary px-6 md:px-8 py-3.5 md:py-4 rounded-xl font-bold text-base md:text-lg hover:bg-surface-container-highest active:scale-95 transition-all flex items-center justify-center gap-2"
               >
                 💼 Become a Creator
               </Link>
@@ -54,11 +54,11 @@ export default function Home() {
           >
             <div className="absolute -top-12 -right-12 w-64 h-64 bg-secondary/10 rounded-full blur-3xl" />
             <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
-            <div className="relative rounded-3xl overflow-hidden rotate-2">
+            <div className="relative rounded-3xl overflow-hidden md:rotate-2">
               <img 
                 src="https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=1000" 
                 alt="AI Visualization" 
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover aspect-[4/3] md:aspect-auto"
                 referrerPolicy="no-referrer"
               />
             </div>
@@ -79,8 +79,8 @@ export default function Home() {
             <Sparkles size={14} className="text-secondary" />
             THE NIGERIA AI SCHOOL PROCESS
           </motion.div>
-          <h2 className="font-headline font-black text-3xl md:text-5xl text-primary mb-6 leading-tight tracking-tight">Simple. Powerful. <span className="text-secondary decoration-secondary/30 underline underline-offset-[12px]">Profitable.</span></h2>
-          <p className="text-on-surface-variant max-w-2xl mx-auto text-base md:text-lg font-medium opacity-80 leading-relaxed">Three simple steps to build your technical arsenal and join the global AI economy.</p>
+          <h2 className="font-headline font-black text-2xl md:text-5xl text-primary mb-4 md:mb-6 leading-tight tracking-tight">Simple. Powerful. <span className="text-secondary decoration-secondary/30 underline underline-offset-[8px] md:underline-offset-[12px]">Profitable.</span></h2>
+          <p className="text-on-surface-variant max-w-2xl mx-auto text-sm md:text-lg font-medium opacity-80 leading-relaxed px-4">Three simple steps to build your technical arsenal and join the global AI economy.</p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16">
