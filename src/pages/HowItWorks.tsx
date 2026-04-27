@@ -46,8 +46,8 @@ export default function HowItWorks() {
         { title: "Personal Mentorship", desc: "Direct access to top-tier AI researchers and engineers.", icon: Users },
         { title: "Digital Certification", desc: "Earn verifiable certificates recognized by leading tech companies.", icon: Award }
       ],
-      cta: "Explore Our Courses",
-      link: "/courses"
+      cta: "Join Now to Learn",
+      link: "/signup"
     },
     {
       id: "create",

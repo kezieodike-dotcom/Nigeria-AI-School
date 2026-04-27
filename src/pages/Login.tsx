@@ -14,7 +14,11 @@ export default function Login() {
 
   React.useEffect(() => {
     if (user) {
-      navigate('/dashboard');
+      if (user.user_metadata?.role === 'creator') {
+        navigate('/creator-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     }
   }, [user, navigate]);
 
@@ -32,7 +36,11 @@ export default function Login() {
       if (error) throw error;
       
       window.showToast('Logged in successfully!');
-      navigate('/dashboard');
+      if (data.user?.user_metadata?.role === 'creator') {
+        navigate('/creator-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err: any) {
       console.error('Login error:', err);
       setError(err.message || 'Invalid login credentials.');

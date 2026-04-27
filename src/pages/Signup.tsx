@@ -8,17 +8,25 @@ import { useAuth } from '../contexts/AuthContext';
 export default function Signup() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const location = import.meta.env.SSR ? null : window.location;
+  const queryRole = new URLSearchParams(location?.search).get('role') as 'student' | 'creator';
+  
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState<'student' | 'creator'>(queryRole || 'student');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSignedUp, setIsSignedUp] = useState(false);
 
   React.useEffect(() => {
     if (user) {
-      navigate('/dashboard');
+      if (user.user_metadata?.role === 'creator') {
+        navigate('/creator-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     }
   }, [user, navigate]);
 
@@ -35,6 +43,7 @@ export default function Signup() {
           data: {
             first_name: firstName,
             last_name: lastName,
+            role: role
           }
         }
       });
@@ -46,7 +55,11 @@ export default function Signup() {
       } else {
         window.showToast('Account created! Please check your email.');
       }
-      navigate('/dashboard');
+      if (role === 'creator') {
+        navigate('/creator-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err: any) {
       setError(err.message || 'An error occurred during signup.');
     } finally {
@@ -76,6 +89,30 @@ export default function Signup() {
         )}
 
         <form className="space-y-6" onSubmit={handleSubmit}>
+          {/* Role Selection */}
+          <div className="flex bg-surface-container-low p-1 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setRole('student')}
+              className={cn(
+                "flex-1 py-3 text-sm font-bold rounded-lg transition-all",
+                role === 'student' ? "bg-white text-primary shadow-sm" : "text-on-surface-variant hover:text-primary"
+              )}
+            >
+              Become a Student
+            </button>
+            <button
+              type="button"
+              onClick={() => setRole('creator')}
+              className={cn(
+                "flex-1 py-3 text-sm font-bold rounded-lg transition-all",
+                role === 'creator' ? "bg-white text-primary shadow-sm" : "text-on-surface-variant hover:text-primary"
+              )}
+            >
+              Become a Creator
+            </button>
+          </div>
+
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="relative w-full">

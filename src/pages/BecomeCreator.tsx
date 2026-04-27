@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
+import { Link } from 'react-router-dom';
 import { Sparkles, Rocket, DollarSign, Users, CheckCircle2, ArrowRight, PlayCircle, Globe, ShieldCheck } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -72,9 +73,9 @@ export default function BecomeCreator() {
               Teach what you know. Reach a global audience. Earn without limits. You teach. We handle the platform.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <button className="bg-secondary text-white px-10 py-4 rounded-xl font-bold text-lg shadow-xl shadow-secondary/20 hover:scale-[1.02] active:scale-95 transition-all">
+              <Link to="/signup?role=creator" className="bg-secondary text-white px-10 py-4 rounded-xl font-bold text-lg shadow-xl shadow-secondary/20 hover:scale-[1.02] active:scale-95 transition-all">
                 Become a Creator →
-              </button>
+              </Link>
               <button className="bg-white/10 backdrop-blur-md text-white border border-white/20 px-10 py-4 rounded-xl font-bold text-lg hover:bg-white/20 transition-all flex items-center gap-2">
                 <PlayCircle size={20} />
                 Watch Creator Stories
@@ -152,9 +153,9 @@ export default function BecomeCreator() {
                   </div>
                 ))}
               </div>
-              <button className="mt-12 flex items-center gap-2 text-primary font-bold hover:gap-4 transition-all group">
+              <Link to="/signup?role=creator" className="mt-12 flex items-center gap-2 text-primary font-bold hover:gap-4 transition-all group">
                 Start Your Application <ArrowRight size={20} />
-              </button>
+              </Link>
             </div>
             <div className="relative">
               <div className="absolute inset-0 bg-secondary/10 rounded-[2.5rem] rotate-3" />
@@ -198,9 +199,9 @@ export default function BecomeCreator() {
           <h2 className="font-headline font-bold text-4xl md:text-5xl text-white mb-8 relative z-10">Ready to share your knowledge?</h2>
           <p className="text-white/80 text-xl mb-12 max-w-2xl mx-auto relative z-10">Join Africa's most prestigious AI creator community today.</p>
           <div className="flex justify-center relative z-10">
-            <button className="bg-white text-secondary px-10 py-4 rounded-xl font-bold text-lg shadow-xl hover:scale-105 transition-all">
+            <Link to="/signup?role=creator" className="bg-white text-secondary px-10 py-4 rounded-xl font-bold text-lg shadow-xl hover:scale-105 transition-all">
               Apply Now
-            </button>
+            </Link>
           </div>
         </div>
       </section>

@@ -14,7 +14,6 @@ export default function Layout({ children }: LayoutProps) {
   const { user, signOut } = useAuth();
 
   const navLinks = [
-    { name: 'Explore Courses', href: '/courses' },
     { name: 'How it Works', href: '/how-it-works' },
     { name: 'About Us', href: '/about' },
     { name: 'Contact Us', href: '/contact-us' },
@@ -55,11 +54,11 @@ export default function Layout({ children }: LayoutProps) {
             {user ? (
               <div className="flex items-center gap-4">
                 <Link 
-                  to="/dashboard" 
+                  to={user.user_metadata?.role === 'creator' ? "/creator-dashboard" : "/dashboard"} 
                   className="flex items-center gap-2 text-sm font-bold text-primary bg-primary/5 px-4 py-2 rounded-xl hover:bg-primary/10 transition-colors"
                 >
                   <LayoutDashboard size={18} />
-                  Dashboard
+                  {user.user_metadata?.role === 'creator' ? 'Creator Hub' : 'Dashboard'}
                 </Link>
                 <button
                   onClick={() => signOut()}
@@ -110,12 +109,12 @@ export default function Layout({ children }: LayoutProps) {
               {user ? (
                 <>
                   <Link 
-                    to="/dashboard" 
+                    to={user.user_metadata?.role === 'creator' ? "/creator-dashboard" : "/dashboard"} 
                     onClick={() => setIsMenuOpen(false)}
                     className="flex items-center justify-center gap-2 py-3 bg-primary/10 text-primary rounded-xl font-bold"
                   >
                     <LayoutDashboard size={20} />
-                    Dashboard
+                    {user.user_metadata?.role === 'creator' ? 'Creator Hub' : 'Dashboard'}
                   </Link>
                   <button 
                     onClick={() => {
@@ -164,9 +163,8 @@ export default function Layout({ children }: LayoutProps) {
           <div>
             <h4 className="text-xs font-bold text-primary uppercase tracking-widest mb-6 font-headline">Learning</h4>
             <ul className="space-y-4">
-              <li><Link to="/courses" className="text-sm text-on-surface-variant hover:text-primary transition-colors">AI & ML</Link></li>
-              <li><Link to="/courses" className="text-sm text-on-surface-variant hover:text-primary transition-colors">Data Science</Link></li>
-              <li><Link to="/courses" className="text-sm text-on-surface-variant hover:text-primary transition-colors">Web Dev</Link></li>
+              <li><Link to="/how-it-works" className="text-sm text-on-surface-variant hover:text-primary transition-colors">How it works</Link></li>
+              <li><Link to="/about" className="text-sm text-on-surface-variant hover:text-primary transition-colors">About Us</Link></li>
             </ul>
           </div>
 
