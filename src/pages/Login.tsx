@@ -116,6 +116,16 @@ export default function Login() {
         <p className="text-center mt-8 text-on-surface-variant font-medium">
           Don't have an account? <Link to="/signup" className="text-secondary font-bold hover:underline underline-offset-4">Sign up here</Link>
         </p>
+
+        {/* Creator Callout */}
+        <div className="mt-8 p-6 bg-surface-container-low rounded-2xl border border-secondary/20 text-center relative overflow-hidden group hover:shadow-lg transition-all">
+          <div className="absolute inset-0 bg-gradient-to-r from-secondary/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <h3 className="font-headline font-bold text-primary mb-2 relative z-10">Are you an AI Expert?</h3>
+          <p className="text-sm text-on-surface-variant mb-4 relative z-10">Upload your videos, reach thousands of students, and make money.</p>
+          <Link to="/signup?role=creator" className="inline-flex items-center gap-2 bg-secondary text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:scale-105 active:scale-95 transition-all shadow-md shadow-secondary/20 relative z-10">
+            Become a Creator <ArrowRight size={16} />
+          </Link>
+        </div>
       </div>
     </div>
   );

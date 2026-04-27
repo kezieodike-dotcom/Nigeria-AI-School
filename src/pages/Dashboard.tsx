@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { LayoutDashboard, BookOpen, CreditCard, Settings, LogOut, Search, Bell, Star, Clock, PlayCircle, ChevronRight, TrendingUp, Users, Share2, Rocket, User, Camera, UploadCloud, X } from 'lucide-react';
+import { LayoutDashboard, BookOpen, CreditCard, Settings, LogOut, Search, Bell, Star, Clock, PlayCircle, ChevronRight, TrendingUp, Users, Share2, Rocket, User, Camera, UploadCloud, X, CheckCircle2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
 import { COURSES } from '../constants';
@@ -136,7 +136,6 @@ export default function Dashboard() {
   const sidebarItems = [
     { name: 'Overview', icon: LayoutDashboard },
     { name: 'My Courses', icon: BookOpen },
-    { name: 'Earnings', icon: CreditCard },
     { name: 'Settings', icon: Settings },
     { name: 'Profile', icon: User },
   ];
@@ -149,9 +148,9 @@ export default function Dashboard() {
             {/* Stats Grid: Bento Box Style */}
             <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
-                { label: 'Total Earnings', value: '₦0', icon: CreditCard, color: 'text-primary', bg: 'bg-primary/10', glow: 'blue' as const, border: 'border-primary/20', span: 'lg:col-span-2' },
-                { label: 'Active Students', value: '0', icon: Users, color: 'text-secondary', bg: 'bg-secondary/10', glow: 'green' as const, border: 'border-secondary/20', span: 'col-span-1' },
-                { label: 'Course Rating', value: '0.0', icon: Star, color: 'text-amber-500', bg: 'bg-amber-500/10', glow: 'orange' as const, border: 'border-amber-500/20', span: 'col-span-1' },
+                { label: 'Courses Enrolled', value: '2', icon: BookOpen, color: 'text-primary', bg: 'bg-primary/10', glow: 'blue' as const, border: 'border-primary/20', span: 'lg:col-span-2' },
+                { label: 'Completed', value: '0', icon: CheckCircle2, color: 'text-secondary', bg: 'bg-secondary/10', glow: 'green' as const, border: 'border-secondary/20', span: 'col-span-1' },
+                { label: 'Certificates', value: '0', icon: Star, color: 'text-amber-500', bg: 'bg-amber-500/10', glow: 'orange' as const, border: 'border-amber-500/20', span: 'col-span-1' },
               ].map((stat) => (
                 <GlowCard 
                   key={stat.label} 
@@ -216,15 +215,17 @@ export default function Dashboard() {
               </div>
 
               <div className="space-y-8">
-                <h2 className="text-xl font-headline font-bold text-primary">Quick Earnings</h2>
+                <h2 className="text-xl font-headline font-bold text-primary">Learning Progress</h2>
                 <GlowCard glowColor="purple" customSize={true} className="bg-white p-8 rounded-2xl border border-outline-variant/10 space-y-8 h-auto">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Total Balance</p>
-                      <h3 className="text-2xl font-headline font-bold text-primary">₦1.2M</h3>
+                      <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Weekly Goal</p>
+                      <h3 className="text-2xl font-headline font-bold text-primary">4 / 10 Hours</h3>
                     </div>
                   </div>
-                  <button onClick={() => setActiveTab('Earnings')} className="w-full py-4 bg-primary text-white rounded-xl font-bold">Details</button>
+                  <div className="h-3 bg-surface-container-low rounded-full overflow-hidden">
+                    <div className="h-full bg-primary w-[40%] rounded-full"></div>
+                  </div>
                 </GlowCard>
               </div>
             </div>
@@ -252,39 +253,7 @@ export default function Dashboard() {
             </div>
           </div>
         );
-      case 'Earnings':
-        return (
-          <div className="space-y-12">
-            <div className="max-w-md">
-              <GlowCard glowColor="green" className="bg-white p-8 h-auto">
-                <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">Wallet Balance</p>
-                <h3 className="text-2xl font-black text-primary">₦1,245,000</h3>
-                <button className="mt-6 w-full py-3 bg-secondary text-white rounded-xl font-bold">Withdraw Now</button>
-              </GlowCard>
 
-            </div>
-            <div className="bg-white rounded-3xl border border-outline-variant/10 overflow-hidden">
-              <table className="w-full text-left">
-                <thead className="bg-surface-container-low border-b border-outline-variant/10">
-                  <tr>
-                    <th className="px-8 py-5 font-bold text-primary text-sm uppercase tracking-widest">Description</th>
-                    <th className="px-8 py-5 font-bold text-primary text-sm uppercase tracking-widest">Date</th>
-                    <th className="px-8 py-5 font-bold text-primary text-sm uppercase tracking-widest">Amount</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-outline-variant/5">
-                  {[1,2,3,4,5].map(i => (
-                    <tr key={i} className="hover:bg-surface-container-lowest transition-colors">
-                      <td className="px-8 py-6 text-on-surface font-medium">Course Sale: AI Mastery Course</td>
-                      <td className="px-8 py-6 text-on-surface-variant text-sm">Oct {10+i}, 2024</td>
-                      <td className="px-8 py-6 text-secondary font-black">+₦12,500</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
       case 'Settings':
         return (
           <div className="max-w-2xl bg-white p-12 rounded-[2.5rem] border border-outline-variant/10 space-y-8">
