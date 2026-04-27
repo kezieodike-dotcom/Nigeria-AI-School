@@ -453,11 +453,7 @@ export default function Dashboard() {
                 <Bell size={18} />
                 <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
              </button>
-              <Link to="/creator-dashboard" className="bg-secondary text-white px-4 md:px-6 py-2.5 md:py-3 rounded-xl font-bold transition-all flex items-center gap-2 text-sm md:text-base">
-                <Rocket size={16} />
-                <span className="hidden sm:inline">Upload Course</span>
-                <span className="sm:hidden">Upload</span>
-              </Link>
+
           </div>
         </header>
 

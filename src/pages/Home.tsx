@@ -12,12 +12,12 @@ export default function Home() {
     <div className="space-y-24 pb-24">
       {/* 🏠 HERO SECTION */}
       <section className="relative overflow-hidden py-16 md:py-32 bg-surface-container-lowest">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 grid md:grid-cols-2 gap-12 items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col items-center text-center">
           <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="z-10"
+            className="z-10 flex flex-col items-center"
           >
             <h1 className="font-headline font-extrabold text-3xl md:text-6xl text-primary tracking-tight leading-[1.1]">
               Learn AI.<br />
@@ -46,23 +46,7 @@ export default function Home() {
               Join a growing community of learners, creators, and innovators shaping the future with AI.
             </p>
           </motion.div>
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="relative"
-          >
-            <div className="absolute -top-12 -right-12 w-64 h-64 bg-secondary/10 rounded-full blur-3xl" />
-            <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
-            <div className="relative rounded-3xl overflow-hidden md:rotate-2">
-              <img 
-                src="https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=1000" 
-                alt="AI Visualization" 
-                className="w-full h-full object-cover aspect-[4/3] md:aspect-auto"
-                referrerPolicy="no-referrer"
-              />
-            </div>
-          </motion.div>
+
         </div>
       </section>
 
