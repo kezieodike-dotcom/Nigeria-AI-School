@@ -154,9 +154,7 @@ export default function Dashboard() {
   const sidebarItems = [
     { name: 'Overview', icon: LayoutDashboard },
     { name: 'My Courses', icon: BookOpen },
-    { name: 'Wishlist', icon: Heart },
     { name: 'Explore', icon: Search },
-    { name: 'Earnings', icon: DollarSign },
     { name: 'My Links', icon: LinkIcon },
     { name: 'Settings', icon: Settings },
     { name: 'Profile', icon: User },
@@ -168,12 +166,11 @@ export default function Dashboard() {
         return (
           <div className="space-y-12">
             {/* Quick Stats */}
-            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
                 { label: 'Courses Enrolled', value: '2', icon: BookOpen, glow: 'blue' as const },
                 { label: 'Courses Completed', value: '0', icon: CheckCircle2, glow: 'green' as const },
                 { label: 'Learning Hours', value: '14.5', icon: Clock, glow: 'purple' as const },
-                { label: 'Total Earnings', value: '₦12,500', icon: DollarSign, glow: 'orange' as const },
               ].map((stat, i) => (
                 <GlowCard 
                   key={i} 
@@ -251,23 +248,6 @@ export default function Dashboard() {
 
               {/* Sidebar content */}
               <div className="space-y-12">
-                {/* Earnings Preview */}
-                <div className="space-y-6">
-                  <h2 className="text-xl font-headline font-bold text-primary">Earnings Preview</h2>
-                  <GlowCard glowColor="green" customSize={true} className="bg-white p-8 rounded-2xl border border-outline-variant/10 h-auto">
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary">
-                        <DollarSign size={24} />
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Available Balance</p>
-                        <h3 className="text-2xl font-black text-primary">₦12,500</h3>
-                      </div>
-                    </div>
-                    <button onClick={() => setActiveTab('Earnings')} className="w-full py-3 bg-secondary/10 text-secondary rounded-xl font-bold hover:bg-secondary hover:text-white transition-all">View Details</button>
-                  </GlowCard>
-                </div>
-
                 {/* Recommended Courses */}
                 <div className="space-y-6">
                   <h2 className="text-xl font-headline font-bold text-primary">Recommended</h2>
@@ -324,30 +304,6 @@ export default function Dashboard() {
           </div>
         );
 
-      case 'Wishlist':
-        return (
-          <div className="space-y-8">
-            <h2 className="text-2xl font-headline font-bold text-primary">My Wishlist</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {COURSES.slice(0,2).map((course) => (
-                <div key={course.id} className="bg-white rounded-3xl overflow-hidden border border-outline-variant/10 shadow-sm flex flex-col">
-                  <img src={course.thumbnail} className="w-full h-48 object-cover" />
-                  <div className="p-6 flex-grow space-y-4 flex flex-col justify-between">
-                    <div>
-                      <h3 className="font-headline font-bold text-primary line-clamp-2">{course.title}</h3>
-                      <p className="text-secondary font-black mt-2">₦{course.price.toLocaleString()}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <button className="flex-grow bg-primary text-white py-3 rounded-xl font-bold text-sm">Buy Now</button>
-                      <button className="p-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-colors"><Trash2 size={18} /></button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-
       case 'Explore':
         return (
           <div className="space-y-8">
@@ -376,56 +332,6 @@ export default function Dashboard() {
                   </div>
                 </GlowCard>
               ))}
-            </div>
-          </div>
-        );
-
-      case 'Earnings':
-        return (
-          <div className="space-y-8">
-            <h2 className="text-2xl font-headline font-bold text-primary">Referral Earnings</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-primary p-8 rounded-3xl text-white relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-                <p className="text-xs font-black uppercase tracking-widest text-white/80 mb-2">Total Earnings</p>
-                <h3 className="text-4xl font-headline font-black mb-6">₦45,000</h3>
-                <button className="w-full bg-white text-primary py-3 rounded-xl font-bold">Withdraw Funds</button>
-              </div>
-              <div className="bg-white p-8 rounded-3xl border border-outline-variant/10">
-                <p className="text-xs font-black uppercase tracking-widest text-on-surface-variant mb-2">Pending</p>
-                <h3 className="text-3xl font-headline font-black text-primary mb-2">₦5,000</h3>
-                <p className="text-sm text-on-surface-variant">Clearing in 3 days</p>
-              </div>
-              <div className="bg-white p-8 rounded-3xl border border-outline-variant/10">
-                <p className="text-xs font-black uppercase tracking-widest text-on-surface-variant mb-2">Withdrawable</p>
-                <h3 className="text-3xl font-headline font-black text-secondary mb-2">₦40,000</h3>
-                <p className="text-sm text-on-surface-variant">Available now</p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-3xl border border-outline-variant/10 overflow-hidden">
-              <div className="p-6 border-b border-outline-variant/10">
-                <h3 className="font-headline font-bold text-primary">Recent Activity</h3>
-              </div>
-              <table className="w-full text-left">
-                <thead className="bg-surface-container-lowest border-b border-outline-variant/10">
-                  <tr>
-                    <th className="px-6 py-4 font-bold text-primary text-xs uppercase tracking-widest">Type</th>
-                    <th className="px-6 py-4 font-bold text-primary text-xs uppercase tracking-widest">Date</th>
-                    <th className="px-6 py-4 font-bold text-primary text-xs uppercase tracking-widest text-right">Amount</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-outline-variant/5">
-                  {[1,2,3].map(i => (
-                    <tr key={i} className="hover:bg-surface-container-lowest transition-colors">
-                      <td className="px-6 py-4 text-sm font-medium">Course Referral (AI Mastery)</td>
-                      <td className="px-6 py-4 text-sm text-on-surface-variant">Oct {10+i}, 2024</td>
-                      <td className="px-6 py-4 text-sm text-secondary font-black text-right">+₦2,500</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             </div>
           </div>
         );
