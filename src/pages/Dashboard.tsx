@@ -132,6 +132,23 @@ export default function Dashboard() {
     }
   };
 
+  const handleUpgradeToCreator = async () => {
+    setIsUpdating(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: { role: 'creator' }
+      });
+      if (error) throw error;
+      window.showToast("Successfully upgraded to Creator Account!");
+      // Need to reload window to force context refresh or manually navigate
+      window.location.href = '/creator-dashboard';
+    } catch (error: any) {
+      window.showToast(error.message, "error");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
 
   const sidebarItems = [
     { name: 'Overview', icon: LayoutDashboard },
@@ -339,6 +356,18 @@ export default function Dashboard() {
               <button onClick={handleUpdateProfile} disabled={isUpdating} className="w-full py-4 bg-primary text-white rounded-xl font-bold disabled:opacity-50">
                 {isUpdating ? 'Updating...' : 'Update Profile'}
               </button>
+
+              <div className="pt-6 mt-6 border-t border-outline-variant/10">
+                <h3 className="text-lg font-headline font-bold text-primary mb-2">Creator Account</h3>
+                <p className="text-sm text-on-surface-variant mb-4">Want to upload courses and earn money? Upgrade your account to become a creator.</p>
+                <button 
+                  onClick={handleUpgradeToCreator} 
+                  disabled={isUpdating} 
+                  className="w-full py-4 bg-secondary text-white rounded-xl font-bold disabled:opacity-50 hover:bg-secondary/90 transition-colors"
+                >
+                  Upgrade to Creator Account
+                </button>
+              </div>
             </div>
             {/* CAMERA MODAL */}
             {showCamera && (
