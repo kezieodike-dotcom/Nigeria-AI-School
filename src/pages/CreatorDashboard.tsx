@@ -36,6 +36,8 @@ export default function CreatorDashboard() {
   const [courseType, setCourseType] = useState('video');
   const [courseModules, setCourseModules] = useState([{ title: '', type: 'video', content: '', file: null }]);
   const [newCourseTitle, setNewCourseTitle] = useState('');
+  const [selectedVideo, setSelectedVideo] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [creatorCourses, setCreatorCourses] = useState<any[]>([
     { id: '1', title: 'Introduction to Generative AI', thumbnail: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80', price: 25000, reviewsCount: 45 },
     { id: '2', title: 'Advanced Neural Networks', thumbnail: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800&q=80', price: 35000, reviewsCount: 12 }
@@ -259,12 +261,26 @@ export default function CreatorDashboard() {
                       <div className="space-y-4">
                         <div 
                           onClick={() => document.getElementById('creator-video-upload')?.click()}
-                          className="border-2 border-dashed border-outline-variant/20 rounded-2xl p-8 flex flex-col items-center justify-center text-center hover:border-primary/50 transition-colors cursor-pointer bg-surface-container-lowest"
+                          className={cn("border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center text-center transition-colors cursor-pointer", selectedVideo ? "border-primary bg-primary/5" : "border-outline-variant/20 hover:border-primary/50 bg-surface-container-lowest")}
                         >
-                          <Upload size={32} className="text-primary/40 mb-4" />
-                          <p className="font-bold text-primary">Upload Video File</p>
-                          <p className="text-xs text-on-surface-variant mt-1">MP4, WebM or MOV (Max 2GB)</p>
-                          <input id="creator-video-upload" type="file" className="hidden" accept="video/*" onChange={(e) => window.showToast("Video selected: " + e.target.files?.[0]?.name)} />
+                          {selectedVideo ? (
+                            <>
+                              <CheckCircle size={32} className="text-secondary mb-4" />
+                              <p className="font-bold text-primary">{selectedVideo.name}</p>
+                              <p className="text-xs text-on-surface-variant mt-1">{(selectedVideo.size / (1024 * 1024)).toFixed(2)} MB</p>
+                            </>
+                          ) : (
+                            <>
+                              <Upload size={32} className="text-primary/40 mb-4" />
+                              <p className="font-bold text-primary">Upload Video File</p>
+                              <p className="text-xs text-on-surface-variant mt-1">MP4, WebM or MOV (Max 2GB)</p>
+                            </>
+                          )}
+                          <input id="creator-video-upload" type="file" className="hidden" accept="video/*" onChange={(e) => {
+                            if (e.target.files && e.target.files.length > 0) {
+                              setSelectedVideo(e.target.files[0]);
+                            }
+                          }} />
                         </div>
                       </div>
                     ) : (
@@ -281,25 +297,59 @@ export default function CreatorDashboard() {
                 <div className="pt-6 border-t border-outline-variant/10 flex justify-between items-center mt-4">
                   <button onClick={() => setShowUploadModal(false)} className="text-on-surface-variant font-bold hover:text-primary px-4 py-2">Cancel</button>
                   <button 
-                    onClick={() => {
-                      if (newCourseTitle.trim()) {
+                    disabled={isUploading}
+                    onClick={async () => {
+                      if (!newCourseTitle.trim()) {
+                        window.showToast?.("Please enter a course title.");
+                        return;
+                      }
+                      if (courseType === 'video' && !selectedVideo) {
+                        window.showToast?.("Please select a video file.");
+                        return;
+                      }
+                      
+                      setIsUploading(true);
+                      try {
+                        let mediaUrl = '';
+                        if (courseType === 'video' && selectedVideo) {
+                          const fileExt = selectedVideo.name.split('.').pop();
+                          const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+                          
+                          const { data: uploadData, error: uploadError } = await supabase.storage
+                            .from('courses')
+                            .upload(fileName, selectedVideo, { upsert: false });
+
+                          if (uploadError) throw uploadError;
+
+                          const { data: publicUrlData } = supabase.storage
+                            .from('courses')
+                            .getPublicUrl(fileName);
+
+                          mediaUrl = publicUrlData.publicUrl;
+                        }
+
                         setCreatorCourses([...creatorCourses, {
                           id: Date.now().toString(),
                           title: newCourseTitle,
                           thumbnail: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=500&q=80',
                           price: 15000,
-                          reviewsCount: 0
+                          reviewsCount: 0,
+                          contentUrl: mediaUrl,
+                          type: courseType
                         }]);
                         setNewCourseTitle('');
+                        setSelectedVideo(null);
                         window.showToast?.("Course published successfully!");
-                      } else {
-                        window.showToast?.("Please enter a course title.");
+                        setShowUploadModal(false);
+                      } catch (error: any) {
+                        window.showToast?.("Failed to publish course. Please ensure you have created a 'courses' bucket in Supabase Storage. Details: " + error.message, "error");
+                      } finally {
+                        setIsUploading(false);
                       }
-                      setShowUploadModal(false);
                     }} 
-                    className="bg-secondary text-white px-8 py-3 rounded-xl font-black flex items-center gap-2"
+                    className="bg-secondary text-white px-8 py-3 rounded-xl font-black flex items-center gap-2 disabled:opacity-50"
                   >
-                    <CheckCircle size={18} /> Publish Course
+                    {isUploading ? <><Upload size={18} className="animate-bounce" /> Uploading...</> : <><CheckCircle size={18} /> Publish Course</>}
                   </button>
                 </div>
               </div>
