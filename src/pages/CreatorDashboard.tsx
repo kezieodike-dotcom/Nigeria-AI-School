@@ -103,8 +103,8 @@ export default function CreatorDashboard() {
                 <div className="flex-grow">
                   <h4 className="text-sm font-bold text-primary line-clamp-1">{course.title}</h4>
                   <div className="flex justify-between mt-2">
-                    <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">{course.reviewsCount} students</span>
-                    <span className="text-[10px] font-black text-secondary uppercase tracking-widest">₦{course.price.toLocaleString()}</span>
+                    <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">{course.reviewsCount || 0} students</span>
+                    <span className="text-[10px] font-black text-secondary uppercase tracking-widest">₦{(course.price || 0).toLocaleString()}</span>
                   </div>
                 </div>
               </div>
@@ -283,7 +283,9 @@ export default function CreatorDashboard() {
                         setCreatorCourses([...creatorCourses, {
                           id: Date.now().toString(),
                           title: newCourseTitle,
-                          thumbnail: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=500&q=80'
+                          thumbnail: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=500&q=80',
+                          price: 15000,
+                          reviewsCount: 0
                         }]);
                         setNewCourseTitle('');
                         window.showToast?.("Course published successfully!");
