@@ -29,7 +29,7 @@ export default function Home() {
             </p>
             <div className="flex flex-wrap gap-3 mb-8">
               <Link 
-                to="/signup?role=student" 
+                to="/courses" 
                 className="flex-grow sm:flex-grow-0 text-center bg-primary text-white px-6 md:px-8 py-3.5 md:py-4 rounded-xl font-bold text-base md:text-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
               >
                 🚀 Start Learning
@@ -179,7 +179,7 @@ export default function Home() {
           className="text-center mt-24"
         >
           <Link 
-            to="/signup" 
+            to="/courses" 
             className="group relative inline-flex items-center gap-4 bg-primary text-white px-8 md:px-16 py-4 md:py-6 rounded-2xl md:rounded-[2rem] font-black text-lg md:text-xl hover:scale-105 active:scale-95 transition-all overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
@@ -197,8 +197,8 @@ export default function Home() {
               Join thousands of students mastering AI from the ground up. Our curriculum is built by industry experts to ensure you're ready for the global market.
             </p>
           </div>
-          <Link to="/signup?role=student" className="bg-primary/5 text-primary px-8 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-primary hover:text-white transition-all group whitespace-nowrap">
-            Sign Up to Learn <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+          <Link to="/courses" className="bg-primary/5 text-primary px-8 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-primary hover:text-white transition-all group whitespace-nowrap">
+            Explore All Courses <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
@@ -369,7 +369,7 @@ export default function Home() {
           </p>
           <div className="flex flex-wrap justify-center gap-4 md:gap-6 relative z-10">
             <Link 
-              to="/signup?role=student" 
+              to="/courses" 
               className="bg-white text-primary px-8 md:px-10 py-4 md:py-5 rounded-xl md:rounded-2xl font-bold text-lg md:text-xl hover:scale-105 transition-all"
             >
               Start Learning Now

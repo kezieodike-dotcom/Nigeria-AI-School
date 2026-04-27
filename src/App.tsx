@@ -7,7 +7,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './pages/Home';
-
+import Courses from './pages/Courses';
 import Dashboard from './pages/Dashboard';
 import BecomeCreator from './pages/BecomeCreator';
 import CourseDetail from './pages/CourseDetail';
@@ -32,7 +32,7 @@ export default function App() {
         <Layout>
           <Routes>
             <Route path="/" element={<Home />} />
-
+            <Route path="/courses" element={<Courses />} />
             <Route 
               path="/dashboard" 
               element={

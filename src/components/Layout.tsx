@@ -14,6 +14,7 @@ export default function Layout({ children }: LayoutProps) {
   const { user, signOut } = useAuth();
 
   const navLinks = [
+    { name: 'Courses', href: '/courses' },
     { name: 'How it Works', href: '/how-it-works' },
     { name: 'About Us', href: '/about' },
     { name: 'Contact Us', href: '/contact-us' },
@@ -163,8 +164,9 @@ export default function Layout({ children }: LayoutProps) {
           <div>
             <h4 className="text-xs font-bold text-primary uppercase tracking-widest mb-6 font-headline">Learning</h4>
             <ul className="space-y-4">
-              <li><Link to="/how-it-works" className="text-sm text-on-surface-variant hover:text-primary transition-colors">How it works</Link></li>
-              <li><Link to="/about" className="text-sm text-on-surface-variant hover:text-primary transition-colors">About Us</Link></li>
+              <li><Link to="/courses" className="text-sm text-on-surface-variant hover:text-primary transition-colors">AI & ML</Link></li>
+              <li><Link to="/courses" className="text-sm text-on-surface-variant hover:text-primary transition-colors">Data Science</Link></li>
+              <li><Link to="/courses" className="text-sm text-on-surface-variant hover:text-primary transition-colors">Web Dev</Link></li>
             </ul>
           </div>
 
