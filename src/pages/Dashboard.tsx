@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { LayoutDashboard, BookOpen, CreditCard, Settings, LogOut, Search, Bell, Star, Clock, PlayCircle, ChevronRight, TrendingUp, Users, Share2, Rocket, User, Camera, UploadCloud, X, CheckCircle2 } from 'lucide-react';
+import { LayoutDashboard, BookOpen, CreditCard, Settings, LogOut, Search, Bell, Star, Clock, PlayCircle, ChevronRight, TrendingUp, Users, Share2, Rocket, User, Camera, UploadCloud, X, CheckCircle2, Heart, DollarSign, Link as LinkIcon, Copy, Twitter, ArrowUpRight, BarChart3, Edit3 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
 import { COURSES } from '../constants';
@@ -153,6 +153,10 @@ export default function Dashboard() {
   const sidebarItems = [
     { name: 'Overview', icon: LayoutDashboard },
     { name: 'My Courses', icon: BookOpen },
+    { name: 'Wishlist', icon: Heart },
+    { name: 'Explore', icon: Search },
+    { name: 'Earnings', icon: DollarSign },
+    { name: 'My Links', icon: LinkIcon },
     { name: 'Settings', icon: Settings },
     { name: 'Profile', icon: User },
   ];
@@ -162,107 +166,155 @@ export default function Dashboard() {
       case 'Overview':
         return (
           <div className="space-y-12">
-            {/* Stats Grid: Bento Box Style */}
+            {/* Quick Stats */}
             <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
-                { label: 'Courses Enrolled', value: '2', icon: BookOpen, color: 'text-primary', bg: 'bg-primary/10', glow: 'blue' as const, border: 'border-primary/20', span: 'lg:col-span-2' },
-                { label: 'Completed', value: '0', icon: CheckCircle2, color: 'text-secondary', bg: 'bg-secondary/10', glow: 'green' as const, border: 'border-secondary/20', span: 'col-span-1' },
-                { label: 'Certificates', value: '0', icon: Star, color: 'text-amber-500', bg: 'bg-amber-500/10', glow: 'orange' as const, border: 'border-amber-500/20', span: 'col-span-1' },
-              ].map((stat) => (
+                { label: 'Courses Enrolled', value: '2', icon: BookOpen, glow: 'blue' as const },
+                { label: 'Courses Completed', value: '0', icon: CheckCircle2, glow: 'green' as const },
+                { label: 'Learning Hours', value: '14.5', icon: Clock, glow: 'purple' as const },
+                { label: 'Total Earnings', value: '₦12,500', icon: DollarSign, glow: 'orange' as const },
+              ].map((stat, i) => (
                 <GlowCard 
-                  key={stat.label} 
+                  key={i} 
                   glowColor={stat.glow}
                   customSize={true}
-                  className={cn(
-                    "bg-white p-7 rounded-[2rem] border flex items-center gap-6 group transition-all duration-500 h-auto",
-                    stat.border,
-                    stat.span
-                  )}
+                  className="bg-white p-7 rounded-[2rem] border border-outline-variant/10 flex items-center gap-6 group transition-all duration-500 h-auto"
                 >
-                  <div className={cn("w-16 h-16 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-500", stat.bg, stat.color)}>
-                    <stat.icon size={32} className="drop-shadow-sm" />
+                  <div className={cn("w-16 h-16 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-500", `bg-${stat.glow}-500/10`, `text-${stat.glow}-500`)}>
+                    <stat.icon size={32} />
                   </div>
                   <div className="flex flex-col">
-                    <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1.5 opacity-60">{stat.label}</p>
+                    <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1.5">{stat.label}</p>
                     <h4 className="text-2xl font-headline font-black text-primary tracking-tight">{stat.value}</h4>
                   </div>
                 </GlowCard>
               ))}
-
             </section>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-              <div className="lg:col-span-2 space-y-8">
-                <div className="flex justify-between items-center">
+              <div className="lg:col-span-2 space-y-12">
+                {/* Continue Learning - Most Important */}
+                <div className="space-y-6">
                   <h2 className="text-xl font-headline font-bold text-primary">Continue Learning</h2>
-                  <button onClick={() => setActiveTab('My Courses')} className="text-sm font-bold text-primary hover:underline">View All</button>
+                  <GlowCard glowColor="blue" className="bg-white p-6 md:p-8 rounded-[2rem] border border-primary/20 flex flex-col md:flex-row items-center gap-8 h-auto shadow-xl shadow-primary/5">
+                    <div className="w-full md:w-64 h-40 rounded-xl overflow-hidden relative shrink-0">
+                      <img src={COURSES[0].thumbnail} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                        <PlayCircle size={48} className="text-white" />
+                      </div>
+                    </div>
+                    <div className="flex-grow w-full space-y-4">
+                      <div>
+                        <span className="text-[10px] font-black text-secondary uppercase tracking-widest bg-secondary/10 px-2 py-1 rounded-lg">In Progress</span>
+                        <h3 className="font-headline font-bold text-xl text-primary mt-2">{COURSES[0].title}</h3>
+                        <p className="text-sm text-on-surface-variant">Module 4: Neural Networks Basics</p>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-xs font-bold text-primary">
+                          <span>45% Completed</span>
+                          <span>2h 15m left</span>
+                        </div>
+                        <div className="h-2 bg-surface-container-low rounded-full overflow-hidden">
+                          <div className="h-full bg-primary w-[45%] rounded-full" />
+                        </div>
+                      </div>
+                      <button className="w-full sm:w-auto px-6 py-3 bg-primary text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:scale-105 transition-all">
+                        Resume Course <ArrowRight size={18} />
+                      </button>
+                    </div>
+                  </GlowCard>
                 </div>
-                <div className="space-y-4">
-                  {COURSES.slice(0, 2).map((course) => (
-                    <GlowCard 
-                      key={course.id} 
-                      glowColor="blue"
-                      customSize={true}
-                      className="bg-white p-6 rounded-2xl border border-outline-variant/10 flex flex-col md:flex-row items-center gap-8 group transition-all h-auto"
-                    >
-                      <div className="w-full md:w-48 h-32 rounded-xl overflow-hidden relative shrink-0">
-                        <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <PlayCircle size={48} className="text-white" />
+
+                {/* My Courses Snapshot */}
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-xl font-headline font-bold text-primary">My Courses</h2>
+                    <button onClick={() => setActiveTab('My Courses')} className="text-sm font-bold text-secondary hover:underline">View All</button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {COURSES.slice(1, 3).map(course => (
+                      <div key={course.id} className="bg-white rounded-2xl border border-outline-variant/10 overflow-hidden hover:border-primary/30 transition-all group">
+                        <img src={course.thumbnail} className="w-full h-32 object-cover group-hover:scale-105 transition-transform" />
+                        <div className="p-5 space-y-4">
+                          <h4 className="font-bold text-primary text-sm line-clamp-1">{course.title}</h4>
+                          <div className="h-1.5 bg-surface-container-low rounded-full overflow-hidden">
+                            <div className="h-full bg-secondary w-[10%] rounded-full" />
+                          </div>
+                          <button className="w-full py-2 bg-surface-container-low text-primary rounded-lg text-sm font-bold hover:bg-primary hover:text-white transition-colors">Continue</button>
                         </div>
                       </div>
-                      <div className="flex-grow space-y-4 w-full">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-headline font-bold text-lg text-primary mb-1">{course.title}</h3>
-                            <p className="text-xs text-on-surface-variant flex items-center gap-2">
-                              <Clock size={14} /> 12 modules left • 45% completed
-                            </p>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="h-2 bg-surface-container-low rounded-full overflow-hidden">
-                            <div className="h-full bg-secondary w-[45%] rounded-full"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </GlowCard>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-8">
-                <h2 className="text-xl font-headline font-bold text-primary">Learning Progress</h2>
-                <GlowCard glowColor="purple" customSize={true} className="bg-white p-8 rounded-2xl border border-outline-variant/10 space-y-8 h-auto">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Weekly Goal</p>
-                      <h3 className="text-2xl font-headline font-bold text-primary">4 / 10 Hours</h3>
+              {/* Sidebar content */}
+              <div className="space-y-12">
+                {/* Earnings Preview */}
+                <div className="space-y-6">
+                  <h2 className="text-xl font-headline font-bold text-primary">Earnings Preview</h2>
+                  <GlowCard glowColor="green" customSize={true} className="bg-white p-8 rounded-2xl border border-outline-variant/10 h-auto">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary">
+                        <DollarSign size={24} />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Available Balance</p>
+                        <h3 className="text-2xl font-black text-primary">₦12,500</h3>
+                      </div>
                     </div>
+                    <button onClick={() => setActiveTab('Earnings')} className="w-full py-3 bg-secondary/10 text-secondary rounded-xl font-bold hover:bg-secondary hover:text-white transition-all">View Details</button>
+                  </GlowCard>
+                </div>
+
+                {/* Recommended Courses */}
+                <div className="space-y-6">
+                  <h2 className="text-xl font-headline font-bold text-primary">Recommended</h2>
+                  <div className="space-y-4">
+                    {COURSES.slice(3, 5).map(course => (
+                      <div key={course.id} className="flex gap-4 p-3 bg-white rounded-2xl border border-outline-variant/10 hover:bg-surface-container-lowest transition-colors cursor-pointer">
+                        <img src={course.thumbnail} className="w-16 h-16 rounded-xl object-cover" />
+                        <div>
+                          <h4 className="text-sm font-bold text-primary line-clamp-2 leading-tight">{course.title}</h4>
+                          <span className="text-[10px] font-black text-secondary uppercase tracking-widest">₦{course.price.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="h-3 bg-surface-container-low rounded-full overflow-hidden">
-                    <div className="h-full bg-primary w-[40%] rounded-full"></div>
-                  </div>
-                </GlowCard>
+                </div>
               </div>
             </div>
           </div>
         );
+
       case 'My Courses':
         return (
           <div className="space-y-8">
             <h2 className="text-2xl font-headline font-bold text-primary">Enrolled Courses</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {COURSES.map((course) => (
-                <GlowCard key={course.id} glowColor="blue" className="bg-white overflow-hidden flex flex-col h-auto">
-                  <img src={course.thumbnail} alt={course.title} className="w-full h-40 object-cover" />
-                  <div className="p-6 space-y-4 flex-grow">
-                    <h3 className="font-bold text-primary line-clamp-1">{course.title}</h3>
-                    <div className="h-2 bg-surface-container-low rounded-full overflow-hidden">
-                      <div className="h-full bg-secondary w-[60%] rounded-full"></div>
+                <GlowCard key={course.id} glowColor="blue" className="bg-white overflow-hidden flex flex-col h-auto group border border-outline-variant/10 hover:border-primary/30">
+                  <div className="relative h-48 overflow-hidden">
+                    <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                  </div>
+                  <div className="p-6 space-y-6 flex-grow flex flex-col justify-between">
+                    <div>
+                      <h3 className="text-lg font-headline font-bold text-primary mb-2 line-clamp-2">{course.title}</h3>
+                      <p className="text-xs text-on-surface-variant flex items-center gap-2 mb-4"><User size={14} /> Chikezie Odike</p>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-xs font-bold text-primary">
+                          <span>Progress</span>
+                          <span>60%</span>
+                        </div>
+                        <div className="h-2 bg-surface-container-low rounded-full overflow-hidden">
+                          <div className="h-full bg-primary w-[60%] rounded-full"></div>
+                        </div>
+                      </div>
                     </div>
-                    <Link to={`/course/${course.id}`} className="w-full">
-                      <button className="w-full py-3 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition-all">Resume Course</button>
+                    <Link to={`/course/${course.id}`} className="w-full block">
+                      <button className="w-full py-3.5 bg-primary text-white rounded-xl font-bold flex justify-center items-center gap-2 hover:scale-[1.02] transition-transform">
+                        <PlayCircle size={18} /> Continue Learning
+                      </button>
                     </Link>
                   </div>
                 </GlowCard>
@@ -271,130 +323,268 @@ export default function Dashboard() {
           </div>
         );
 
-      case 'Settings':
+      case 'Wishlist':
         return (
-          <div className="max-w-2xl bg-white p-12 rounded-[2.5rem] border border-outline-variant/10 space-y-8">
-            <h2 className="text-2xl font-headline font-bold text-primary">Account Settings</h2>
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-xs font-black uppercase text-on-surface-variant">Change Password</label>
-                <input type="password" placeholder="••••••••" className="w-full px-4 py-3 bg-surface-container-low rounded-xl border-none focus:ring-2 focus:ring-primary/20" />
-              </div>
-              <div className="flex items-center justify-between p-4 bg-surface-container-low rounded-2xl">
-                <div>
-                  <p className="text-sm font-bold text-primary">Email Notifications</p>
-                  <p className="text-xs text-on-surface-variant">Receive updates about your courses</p>
+          <div className="space-y-8">
+            <h2 className="text-2xl font-headline font-bold text-primary">My Wishlist</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {COURSES.slice(0,2).map((course) => (
+                <div key={course.id} className="bg-white rounded-3xl overflow-hidden border border-outline-variant/10 shadow-sm flex flex-col">
+                  <img src={course.thumbnail} className="w-full h-48 object-cover" />
+                  <div className="p-6 flex-grow space-y-4 flex flex-col justify-between">
+                    <div>
+                      <h3 className="font-headline font-bold text-primary line-clamp-2">{course.title}</h3>
+                      <p className="text-secondary font-black mt-2">₦{course.price.toLocaleString()}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button className="flex-grow bg-primary text-white py-3 rounded-xl font-bold text-sm">Buy Now</button>
+                      <button className="p-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-colors"><Trash2 size={18} /></button>
+                    </div>
+                  </div>
                 </div>
-                <div className="w-12 h-6 bg-secondary rounded-full relative cursor-pointer">
-                  <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm" />
-                </div>
-              </div>
-              <button className="w-full py-4 bg-primary text-white rounded-xl font-bold">Save Settings</button>
+              ))}
             </div>
           </div>
         );
-      case 'Profile':
+
+      case 'Explore':
         return (
-          <div className="max-w-2xl bg-white p-12 rounded-[2.5rem] border border-outline-variant/10 space-y-8">
-            <h2 className="text-2xl font-headline font-bold text-primary">User Profile</h2>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 pb-8 border-b border-outline-variant/10">
-              <div className="w-24 h-24 rounded-3xl bg-surface-container flex items-center justify-center overflow-hidden border-2 border-primary/10 relative group">
-                {avatarImage ? (
-                  <img src={avatarImage} alt="User Avatar" className="w-full h-full object-cover" />
-                ) : (
-                  <User size={48} className="text-primary/20" />
-                )}
-              </div>
-              <div className="space-y-3">
-                <div className="flex flex-wrap gap-3">
-                  <button 
-                    onClick={() => document.getElementById('avatar-upload')?.click()}
-                    className="flex items-center gap-2 text-sm font-bold bg-primary text-white px-4 py-2 rounded-xl hover:bg-primary-container transition-colors"
-                  >
-                    <UploadCloud size={16} /> Upload Photo
-                  </button>
-                  <button 
-                    onClick={startCamera}
-                    className="flex items-center gap-2 text-sm font-bold bg-surface-container text-on-surface-variant px-4 py-2 rounded-xl hover:bg-surface-container-high transition-colors"
-                  >
-                    <Camera size={16} /> Take Photo
-                  </button>
-                </div>
-                <input 
-                  type="file" 
-                  id="avatar-upload" 
-                  className="hidden" 
-                  accept="image/*" 
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onload = (event) => setAvatarImage(event.target?.result as string);
-                      reader.readAsDataURL(file);
-                    }
-                  }} 
-                />
-                <p className="text-xs text-on-surface-variant">JPG, GIF or PNG. Max size of 800K</p>
+          <div className="space-y-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <h2 className="text-2xl font-headline font-bold text-primary">Explore Courses</h2>
+              <div className="relative w-full md:w-96">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
+                <input type="text" placeholder="Search for AI courses..." className="w-full pl-12 pr-4 py-3 bg-white rounded-2xl border border-outline-variant/20 focus:border-primary focus:ring-2 focus:ring-primary/20" />
               </div>
             </div>
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase text-on-surface-variant">First Name</label>
-                  <input value={firstNameInput} onChange={(e) => setFirstNameInput(e.target.value)} className="w-full px-4 py-3 bg-surface-container-low rounded-xl border-none focus:ring-2 focus:ring-primary/20" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase text-on-surface-variant">Last Name</label>
-                  <input value={lastNameInput} onChange={(e) => setLastNameInput(e.target.value)} className="w-full px-4 py-3 bg-surface-container-low rounded-xl border-none focus:ring-2 focus:ring-primary/20" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-black uppercase text-on-surface-variant">Email Address</label>
-                <input value={emailInput} onChange={(e) => setEmailInput(e.target.value)} className="w-full px-4 py-3 bg-surface-container-low rounded-xl border-none focus:ring-2 focus:ring-primary/20" />
-              </div>
-              
-              <button onClick={handleUpdateProfile} disabled={isUpdating} className="w-full py-4 bg-primary text-white rounded-xl font-bold disabled:opacity-50">
-                {isUpdating ? 'Updating...' : 'Update Profile'}
-              </button>
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              {['All', 'AI Development', 'Data Science', 'Generative AI', 'Web Development'].map(filter => (
+                <button key={filter} className="px-6 py-2 bg-white border border-outline-variant/20 rounded-full text-sm font-bold text-on-surface-variant whitespace-nowrap hover:border-primary hover:text-primary transition-colors">{filter}</button>
+              ))}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {COURSES.map(course => (
+                <GlowCard key={course.id} glowColor="blue" className="bg-white overflow-hidden border border-outline-variant/10 h-auto">
+                  <img src={course.thumbnail} className="w-full h-48 object-cover" />
+                  <div className="p-6 space-y-4">
+                    <h3 className="font-headline font-bold text-primary line-clamp-2">{course.title}</h3>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-bold text-on-surface-variant flex items-center gap-1"><Star size={14} className="text-amber-500 fill-amber-500"/> 4.8 (120)</span>
+                      <span className="text-lg font-black text-secondary">₦{course.price.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </GlowCard>
+              ))}
+            </div>
+          </div>
+        );
 
-              <div className="pt-6 mt-6 border-t border-outline-variant/10">
-                <h3 className="text-lg font-headline font-bold text-primary mb-2">Creator Account</h3>
-                <p className="text-sm text-on-surface-variant mb-4">Want to upload courses and earn money? Upgrade your account to become a creator.</p>
-                <button 
-                  onClick={handleUpgradeToCreator} 
-                  disabled={isUpdating} 
-                  className="w-full py-4 bg-secondary text-white rounded-xl font-bold disabled:opacity-50 hover:bg-secondary/90 transition-colors"
-                >
-                  Upgrade to Creator Account
+      case 'Earnings':
+        return (
+          <div className="space-y-8">
+            <h2 className="text-2xl font-headline font-bold text-primary">Referral Earnings</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-primary p-8 rounded-3xl text-white relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+                <p className="text-xs font-black uppercase tracking-widest text-white/80 mb-2">Total Earnings</p>
+                <h3 className="text-4xl font-headline font-black mb-6">₦45,000</h3>
+                <button className="w-full bg-white text-primary py-3 rounded-xl font-bold">Withdraw Funds</button>
+              </div>
+              <div className="bg-white p-8 rounded-3xl border border-outline-variant/10">
+                <p className="text-xs font-black uppercase tracking-widest text-on-surface-variant mb-2">Pending</p>
+                <h3 className="text-3xl font-headline font-black text-primary mb-2">₦5,000</h3>
+                <p className="text-sm text-on-surface-variant">Clearing in 3 days</p>
+              </div>
+              <div className="bg-white p-8 rounded-3xl border border-outline-variant/10">
+                <p className="text-xs font-black uppercase tracking-widest text-on-surface-variant mb-2">Withdrawable</p>
+                <h3 className="text-3xl font-headline font-black text-secondary mb-2">₦40,000</h3>
+                <p className="text-sm text-on-surface-variant">Available now</p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-3xl border border-outline-variant/10 overflow-hidden">
+              <div className="p-6 border-b border-outline-variant/10">
+                <h3 className="font-headline font-bold text-primary">Recent Activity</h3>
+              </div>
+              <table className="w-full text-left">
+                <thead className="bg-surface-container-lowest border-b border-outline-variant/10">
+                  <tr>
+                    <th className="px-6 py-4 font-bold text-primary text-xs uppercase tracking-widest">Type</th>
+                    <th className="px-6 py-4 font-bold text-primary text-xs uppercase tracking-widest">Date</th>
+                    <th className="px-6 py-4 font-bold text-primary text-xs uppercase tracking-widest text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-outline-variant/5">
+                  {[1,2,3].map(i => (
+                    <tr key={i} className="hover:bg-surface-container-lowest transition-colors">
+                      <td className="px-6 py-4 text-sm font-medium">Course Referral (AI Mastery)</td>
+                      <td className="px-6 py-4 text-sm text-on-surface-variant">Oct {10+i}, 2024</td>
+                      <td className="px-6 py-4 text-sm text-secondary font-black text-right">+₦2,500</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+
+      case 'My Links':
+        return (
+          <div className="space-y-8 max-w-3xl">
+            <h2 className="text-2xl font-headline font-bold text-primary">My Referral Links</h2>
+            <div className="bg-white p-8 rounded-3xl border border-outline-variant/10 space-y-6">
+              <p className="text-on-surface-variant">Share your unique link with friends. When they purchase a course, you earn a 20% commission!</p>
+              <div className="flex gap-4">
+                <input 
+                  type="text" 
+                  readOnly 
+                  value="nigeriaai.com/?ref=chikezie" 
+                  className="flex-grow px-5 py-4 bg-surface-container-low rounded-xl font-mono text-sm border-none focus:ring-0" 
+                />
+                <button className="px-6 py-4 bg-primary text-white rounded-xl font-bold flex items-center gap-2 hover:bg-primary/90 transition-colors shrink-0">
+                  <Copy size={18} /> Copy
                 </button>
               </div>
-            </div>
-            {/* CAMERA MODAL */}
-            {showCamera && (
-              <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6">
-                <div className="bg-white rounded-[2.5rem] overflow-hidden max-w-xl w-full relative">
-                  <button onClick={stopCamera} className="absolute top-6 right-6 z-10 p-3 bg-black/10 hover:bg-black/20 rounded-full transition-colors text-white">
-                    <X size={24} />
-                  </button>
-                  <div className="aspect-square bg-black relative">
-                    <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
-                    <canvas ref={canvasRef} className="hidden" />
-                  </div>
-                  <div className="p-8 text-center space-y-6">
-                    <h3 className="text-xl font-headline font-bold text-primary">Take a Profile Picture</h3>
-                    <p className="text-sm text-on-surface-variant">Make sure your face is clearly visible in the frame.</p>
-                    <button 
-                      onClick={takePhoto}
-                      className="w-20 h-20 bg-primary text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all mx-auto"
-                    >
-                      <Camera size={32} />
-                    </button>
-                  </div>
-                </div>
+              <div className="pt-6 border-t border-outline-variant/10 flex items-center gap-4">
+                <span className="text-sm font-bold text-on-surface-variant">Share quickly:</span>
+                <button className="p-3 bg-[#25D366]/10 text-[#25D366] rounded-xl hover:bg-[#25D366] hover:text-white transition-colors"><Share2 size={20} /></button>
+                <button className="p-3 bg-blue-50 text-blue-500 rounded-xl hover:bg-blue-500 hover:text-white transition-colors"><Twitter size={20} /></button>
               </div>
-            )}
+            </div>
           </div>
         );
+
+      case 'Settings':
+        return (
+          <div className="max-w-2xl space-y-8">
+            <h2 className="text-2xl font-headline font-bold text-primary">Account Settings</h2>
+            <div className="bg-white p-8 md:p-12 rounded-[2.5rem] border border-outline-variant/10 space-y-8">
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase text-on-surface-variant">Change Password</label>
+                  <input type="password" placeholder="••••••••" className="w-full px-4 py-3 bg-surface-container-low rounded-xl border-none focus:ring-2 focus:ring-primary/20" />
+                </div>
+                <div className="flex items-center justify-between p-4 bg-surface-container-low rounded-2xl">
+                  <div>
+                    <p className="text-sm font-bold text-primary">Email Notifications</p>
+                    <p className="text-xs text-on-surface-variant">Receive updates about your courses</p>
+                  </div>
+                  <div className="w-12 h-6 bg-secondary rounded-full relative cursor-pointer">
+                    <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm" />
+                  </div>
+                </div>
+                <button className="w-full py-4 bg-primary text-white rounded-xl font-bold">Save Settings</button>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'Profile':
+        return (
+          <div className="max-w-2xl space-y-8">
+            <h2 className="text-2xl font-headline font-bold text-primary">User Profile</h2>
+            <div className="bg-white p-8 md:p-12 rounded-[2.5rem] border border-outline-variant/10 space-y-8">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 pb-8 border-b border-outline-variant/10">
+                <div className="w-24 h-24 rounded-3xl bg-surface-container flex items-center justify-center overflow-hidden border-2 border-primary/10 relative group shrink-0">
+                  {avatarImage ? (
+                    <img src={avatarImage} alt="User Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <User size={48} className="text-primary/20" />
+                  )}
+                </div>
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-3">
+                    <button 
+                      onClick={() => document.getElementById('avatar-upload')?.click()}
+                      className="flex items-center gap-2 text-sm font-bold bg-primary text-white px-4 py-2 rounded-xl hover:bg-primary-container transition-colors"
+                    >
+                      <UploadCloud size={16} /> Upload Photo
+                    </button>
+                    <button 
+                      onClick={startCamera}
+                      className="flex items-center gap-2 text-sm font-bold bg-surface-container text-on-surface-variant px-4 py-2 rounded-xl hover:bg-surface-container-high transition-colors"
+                    >
+                      <Camera size={16} /> Take Photo
+                    </button>
+                  </div>
+                  <input 
+                    type="file" 
+                    id="avatar-upload" 
+                    className="hidden" 
+                    accept="image/*" 
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => setAvatarImage(event.target?.result as string);
+                        reader.readAsDataURL(file);
+                      }
+                    }} 
+                  />
+                  <p className="text-xs text-on-surface-variant">JPG, GIF or PNG. Max size of 800K</p>
+                </div>
+              </div>
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase text-on-surface-variant">First Name</label>
+                    <input value={firstNameInput} onChange={(e) => setFirstNameInput(e.target.value)} className="w-full px-4 py-3 bg-surface-container-low rounded-xl border-none focus:ring-2 focus:ring-primary/20" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase text-on-surface-variant">Last Name</label>
+                    <input value={lastNameInput} onChange={(e) => setLastNameInput(e.target.value)} className="w-full px-4 py-3 bg-surface-container-low rounded-xl border-none focus:ring-2 focus:ring-primary/20" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase text-on-surface-variant">Email Address</label>
+                  <input value={emailInput} onChange={(e) => setEmailInput(e.target.value)} className="w-full px-4 py-3 bg-surface-container-low rounded-xl border-none focus:ring-2 focus:ring-primary/20" />
+                </div>
+                
+                <button onClick={handleUpdateProfile} disabled={isUpdating} className="w-full py-4 bg-primary text-white rounded-xl font-bold disabled:opacity-50">
+                  {isUpdating ? 'Updating...' : 'Update Profile'}
+                </button>
+
+                <div className="pt-6 mt-6 border-t border-outline-variant/10">
+                  <h3 className="text-lg font-headline font-bold text-primary mb-2">Creator Account</h3>
+                  <p className="text-sm text-on-surface-variant mb-4">Want to upload courses and earn money? Upgrade your account to become a creator.</p>
+                  <button 
+                    onClick={handleUpgradeToCreator} 
+                    disabled={isUpdating} 
+                    className="w-full py-4 bg-secondary text-white rounded-xl font-bold disabled:opacity-50 hover:bg-secondary/90 transition-colors"
+                  >
+                    Upgrade to Creator Account
+                  </button>
+                </div>
+              </div>
+              {/* CAMERA MODAL */}
+              {showCamera && (
+                <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6">
+                  <div className="bg-white rounded-[2.5rem] overflow-hidden max-w-xl w-full relative">
+                    <button onClick={stopCamera} className="absolute top-6 right-6 z-10 p-3 bg-black/10 hover:bg-black/20 rounded-full transition-colors text-white">
+                      <X size={24} />
+                    </button>
+                    <div className="aspect-square bg-black relative">
+                      <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
+                      <canvas ref={canvasRef} className="hidden" />
+                    </div>
+                    <div className="p-8 text-center space-y-6">
+                      <h3 className="text-xl font-headline font-bold text-primary">Take a Profile Picture</h3>
+                      <p className="text-sm text-on-surface-variant">Make sure your face is clearly visible in the frame.</p>
+                      <button 
+                        onClick={takePhoto}
+                        className="w-20 h-20 bg-primary text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all mx-auto"
+                      >
+                        <Camera size={32} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -442,9 +632,11 @@ export default function Dashboard() {
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6">
           <div>
             <h1 className="text-2xl md:text-3xl font-headline font-bold text-primary mb-1 md:mb-2">
-              {activeTab === 'Overview' ? `Welcome back, ${userName}! 👋` : activeTab}
+              {activeTab === 'Overview' ? `Welcome back, ${userName} 👋` : activeTab}
             </h1>
-            <p className="text-sm md:text-base text-on-surface-variant">Manage your learning and earning in one place.</p>
+            <p className="text-sm md:text-base text-on-surface-variant">
+              {activeTab === 'Overview' ? 'Continue your AI journey today.' : 'Manage your learning and earning in one place.'}
+            </p>
           </div>
           <div className="flex items-center gap-3 md:gap-4">
               <button className="p-2.5 md:p-3 bg-white border border-outline-variant/10 rounded-xl text-on-surface-variant hover:text-primary relative group transition-all">
