@@ -19,7 +19,7 @@ export default function Login() {
 
   React.useEffect(() => {
     if (user) {
-      if (role === 'creator' || user.user_metadata?.role === 'creator') {
+      if (role === 'creator') {
         navigate('/creator-dashboard');
       } else {
         navigate('/dashboard');
@@ -46,7 +46,7 @@ export default function Login() {
       }
 
       window.showToast('Logged in successfully!');
-      if (role === 'creator' || data.user?.user_metadata?.role === 'creator') {
+      if (role === 'creator') {
         navigate('/creator-dashboard');
       } else {
         navigate('/dashboard');
