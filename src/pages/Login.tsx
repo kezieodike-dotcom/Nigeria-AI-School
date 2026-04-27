@@ -1,26 +1,31 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Lock, Mail, AlertCircle, Loader2 } from 'lucide-react';
+import { cn } from '../lib/utils';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Login() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const location = import.meta.env.SSR ? null : window.location;
+  const queryRole = new URLSearchParams(location?.search).get('role') as 'student' | 'creator';
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState<'student' | 'creator'>(queryRole || 'student');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   React.useEffect(() => {
     if (user) {
-      if (user.user_metadata?.role === 'creator') {
+      if (role === 'creator' || user.user_metadata?.role === 'creator') {
         navigate('/creator-dashboard');
       } else {
         navigate('/dashboard');
       }
     }
-  }, [user, navigate]);
+  }, [user, navigate, role]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,8 +40,13 @@ export default function Login() {
 
       if (error) throw error;
       
+      // Update metadata if they selected creator and weren't one before
+      if (role === 'creator' && data.user?.user_metadata?.role !== 'creator') {
+        await supabase.auth.updateUser({ data: { role: 'creator' } });
+      }
+
       window.showToast('Logged in successfully!');
-      if (data.user?.user_metadata?.role === 'creator') {
+      if (role === 'creator' || data.user?.user_metadata?.role === 'creator') {
         navigate('/creator-dashboard');
       } else {
         navigate('/dashboard');
@@ -71,6 +81,30 @@ export default function Login() {
         )}
 
         <form className="space-y-6" onSubmit={handleSubmit}>
+          {/* Role Selection */}
+          <div className="flex bg-surface-container-low p-1 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setRole('student')}
+              className={cn(
+                "flex-1 py-3 text-sm font-bold rounded-lg transition-all",
+                role === 'student' ? "bg-white text-primary shadow-sm" : "text-on-surface-variant hover:text-primary"
+              )}
+            >
+              Login as Student
+            </button>
+            <button
+              type="button"
+              onClick={() => setRole('creator')}
+              className={cn(
+                "flex-1 py-3 text-sm font-bold rounded-lg transition-all",
+                role === 'creator' ? "bg-white text-primary shadow-sm" : "text-on-surface-variant hover:text-primary"
+              )}
+            >
+              Login as Creator
+            </button>
+          </div>
+
           <div className="space-y-4">
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
