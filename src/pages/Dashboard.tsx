@@ -19,6 +19,10 @@ export default function Dashboard() {
   const [lastNameInput, setLastNameInput] = React.useState('');
   const [emailInput, setEmailInput] = React.useState('');
   const [isUpdating, setIsUpdating] = React.useState(false);
+  const [courses, setCourses] = React.useState<Course[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [selectedCourse, setSelectedCourse] = React.useState<Course | null>(null);
+  const [showLesson, setShowLesson] = React.useState(false);
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
 
@@ -63,6 +67,47 @@ export default function Dashboard() {
   };
 
   React.useEffect(() => {
+    fetchCourses();
+  }, []);
+
+  const fetchCourses = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('courses')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      const formattedCourses = (data || []).map(course => ({
+        id: course.id,
+        title: course.title,
+        description: course.description || '',
+        category: course.category || 'AI & ML',
+        rating: course.rating || 0,
+        reviewsCount: course.reviews_count || 0,
+        price: course.price || 0,
+        thumbnail: course.thumbnail || 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800&q=80',
+        duration: '12 hrs content',
+        videoUrl: course.video_url,
+        type: course.type || 'video',
+        instructor: {
+          name: 'Expert Instructor',
+          role: 'AI Specialist',
+          avatar: 'https://ui-avatars.com/api/?name=AI&background=00154d&color=fff'
+        }
+      }));
+
+      setCourses(formattedCourses);
+    } catch (error: any) {
+      console.error('Error fetching courses:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
     if (user) {
       const firstName = user.user_metadata?.first_name || 'Student';
       setUserName(firstName);
@@ -80,13 +125,11 @@ export default function Dashboard() {
     try {
       let finalAvatarUrl = avatarImage;
 
-      // If the avatarImage is a new base64 string, upload it to Supabase Storage first
       if (avatarImage && avatarImage.startsWith('data:image')) {
         try {
           const fileExt = avatarImage.substring("data:image/".length, avatarImage.indexOf(";base64"));
           const fileName = `${user?.id}-${Date.now()}.${fileExt}`;
           
-          // Convert base64 to Blob
           const res = await fetch(avatarImage);
           const blob = await res.blob();
 
@@ -124,7 +167,7 @@ export default function Dashboard() {
       const { error } = await supabase.auth.updateUser(updates);
       if (error) throw error;
       
-      setAvatarImage(finalAvatarUrl); // Update local state with the new URL
+      setAvatarImage(finalAvatarUrl);
       window.showToast("Profile updated successfully!");
     } catch (error: any) {
       window.showToast(error.message, "error");
@@ -141,7 +184,6 @@ export default function Dashboard() {
       });
       if (error) throw error;
       window.showToast("Successfully upgraded to Creator Account!");
-      // Need to reload window to force context refresh or manually navigate
       window.location.href = '/creator-dashboard';
     } catch (error: any) {
       window.showToast(error.message, "error");
@@ -149,7 +191,6 @@ export default function Dashboard() {
       setIsUpdating(false);
     }
   };
-
 
   const sidebarItems = [
     { name: 'Overview', icon: LayoutDashboard },
@@ -196,7 +237,7 @@ export default function Dashboard() {
                   <h2 className="text-xl font-headline font-bold text-primary">Continue Learning</h2>
                   <GlowCard glowColor="blue" className="bg-white p-6 md:p-8 rounded-[2rem] border border-primary/20 flex flex-col md:flex-row items-center gap-8 h-auto shadow-xl shadow-primary/5">
                     <div className="w-full md:w-64 h-40 rounded-xl overflow-hidden relative shrink-0">
-                      <img src={COURSES[0].thumbnail} className="w-full h-full object-cover" />
+                      <img src={courses[0]?.thumbnail || COURSES[0].thumbnail} className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                         <PlayCircle size={48} className="text-white" />
                       </div>
@@ -204,7 +245,7 @@ export default function Dashboard() {
                     <div className="flex-grow w-full space-y-4">
                       <div>
                         <span className="text-[10px] font-black text-secondary uppercase tracking-widest bg-secondary/10 px-2 py-1 rounded-lg">In Progress</span>
-                        <h3 className="font-headline font-bold text-xl text-primary mt-2">{COURSES[0].title}</h3>
+                        <h3 className="font-headline font-bold text-xl text-primary mt-2">{courses[0]?.title || COURSES[0].title}</h3>
                         <p className="text-sm text-on-surface-variant">Module 4: Neural Networks Basics</p>
                       </div>
                       <div className="space-y-2">
@@ -216,11 +257,33 @@ export default function Dashboard() {
                           <div className="h-full bg-primary w-[45%] rounded-full" />
                         </div>
                       </div>
-                      <button className="w-full sm:w-auto px-6 py-3 bg-primary text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:scale-105 transition-all">
+                      <button 
+                        onClick={() => {
+                          setSelectedCourse(courses[0] || (COURSES[0] as any));
+                          setShowLesson(true);
+                        }}
+                        className="w-full sm:w-auto px-6 py-3 bg-primary text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:scale-105 transition-all"
+                      >
                         Resume Course <ArrowRight size={18} />
                       </button>
                     </div>
                   </GlowCard>
+                </div>
+
+                {/* Recommended Courses - Directly under Continue Learning */}
+                <div className="space-y-6">
+                  <h2 className="text-xl font-headline font-bold text-primary">Recommended for You</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {COURSES.slice(3, 5).map(course => (
+                      <div key={course.id} className="flex gap-4 p-4 bg-white rounded-2xl border border-outline-variant/10 hover:border-secondary/30 hover:bg-surface-container-lowest transition-all cursor-pointer">
+                        <img src={course.thumbnail} className="w-20 h-20 rounded-xl object-cover" />
+                        <div className="flex flex-col justify-center">
+                          <h4 className="text-sm font-bold text-primary line-clamp-2 leading-tight">{course.title}</h4>
+                          <span className="text-[10px] font-black text-secondary uppercase tracking-widest mt-1">₦{course.price.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 {/* My Courses Snapshot */}
@@ -248,21 +311,6 @@ export default function Dashboard() {
 
               {/* Sidebar content */}
               <div className="space-y-12">
-                {/* Recommended Courses */}
-                <div className="space-y-6">
-                  <h2 className="text-xl font-headline font-bold text-primary">Recommended</h2>
-                  <div className="space-y-4">
-                    {COURSES.slice(3, 5).map(course => (
-                      <div key={course.id} className="flex gap-4 p-3 bg-white rounded-2xl border border-outline-variant/10 hover:bg-surface-container-lowest transition-colors cursor-pointer">
-                        <img src={course.thumbnail} className="w-16 h-16 rounded-xl object-cover" />
-                        <div>
-                          <h4 className="text-sm font-bold text-primary line-clamp-2 leading-tight">{course.title}</h4>
-                          <span className="text-[10px] font-black text-secondary uppercase tracking-widest">₦{course.price.toLocaleString()}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -273,7 +321,7 @@ export default function Dashboard() {
           <div className="space-y-8">
             <h2 className="text-2xl font-headline font-bold text-primary">Enrolled Courses</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {COURSES.map((course) => (
+              {(courses.length > 0 ? courses : COURSES).map((course) => (
                 <GlowCard key={course.id} glowColor="blue" className="bg-white overflow-hidden flex flex-col h-auto group border border-outline-variant/10 hover:border-primary/30">
                   <div className="relative h-48 overflow-hidden">
                     <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
@@ -292,11 +340,15 @@ export default function Dashboard() {
                         </div>
                       </div>
                     </div>
-                    <Link to={`/course/${course.id}`} className="w-full block">
-                      <button className="w-full py-3.5 bg-primary text-white rounded-xl font-bold flex justify-center items-center gap-2 hover:scale-[1.02] transition-transform">
-                        <PlayCircle size={18} /> Continue Learning
-                      </button>
-                    </Link>
+                    <button 
+                      onClick={() => {
+                        setSelectedCourse(course as any);
+                        setShowLesson(true);
+                      }}
+                      className="w-full py-3.5 bg-primary text-white rounded-xl font-bold flex justify-center items-center gap-2 hover:scale-[1.02] transition-transform"
+                    >
+                      <PlayCircle size={18} /> Continue Learning
+                    </button>
                   </div>
                 </GlowCard>
               ))}
@@ -320,7 +372,7 @@ export default function Dashboard() {
               ))}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {COURSES.map(course => (
+              {(courses.length > 0 ? courses : COURSES).map(course => (
                 <GlowCard key={course.id} glowColor="blue" className="bg-white overflow-hidden border border-outline-variant/10 h-auto">
                   <img src={course.thumbnail} className="w-full h-48 object-cover" />
                   <div className="p-6 space-y-4">
@@ -329,6 +381,15 @@ export default function Dashboard() {
                       <span className="text-xs font-bold text-on-surface-variant flex items-center gap-1"><Star size={14} className="text-amber-500 fill-amber-500"/> 4.8 (120)</span>
                       <span className="text-lg font-black text-secondary">₦{course.price.toLocaleString()}</span>
                     </div>
+                    <button 
+                      onClick={() => {
+                        setSelectedCourse(course as any);
+                        setShowLesson(true);
+                      }}
+                      className="w-full py-3 bg-primary text-white rounded-xl font-bold text-sm"
+                    >
+                      View Course
+                    </button>
                   </div>
                 </GlowCard>
               ))}
@@ -546,15 +607,71 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex items-center gap-3 md:gap-4">
-              <button className="p-2.5 md:p-3 bg-white border border-outline-variant/10 rounded-xl text-on-surface-variant hover:text-primary relative group transition-all">
-                <Bell size={18} />
-                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
-             </button>
-
+            <button className="p-2.5 md:p-3 bg-white border border-outline-variant/10 rounded-xl text-on-surface-variant hover:text-primary relative group transition-all">
+              <Bell size={18} />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
+            </button>
           </div>
         </header>
 
         {renderContent()}
+
+        {/* Lesson View Modal */}
+        {showLesson && selectedCourse && (
+          <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center p-0 md:p-12">
+            <div className="w-full max-w-6xl h-full max-h-[90vh] bg-white md:rounded-[3rem] overflow-hidden flex flex-col relative">
+              <button 
+                onClick={() => setShowLesson(false)}
+                className="absolute top-6 right-6 z-10 p-3 bg-black/10 hover:bg-black/20 rounded-full transition-colors text-primary md:text-white"
+              >
+                <X size={24} />
+              </button>
+              
+              <div className="aspect-video bg-black flex items-center justify-center">
+                {selectedCourse.videoUrl ? (
+                  <video 
+                    controls 
+                    autoPlay 
+                    className="w-full h-full"
+                    src={selectedCourse.videoUrl}
+                  />
+                ) : (
+                  <div className="text-center text-white space-y-4">
+                    <Video size={64} className="mx-auto opacity-20" />
+                    <p className="font-bold">No video content available for this lesson.</p>
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex-grow p-8 md:p-12 space-y-6 overflow-y-auto">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h2 className="text-2xl md:text-3xl font-headline font-bold text-primary mb-2">{selectedCourse.title}</h2>
+                    <p className="text-on-surface-variant">{selectedCourse.description || 'No description provided.'}</p>
+                  </div>
+                </div>
+                
+                <div className="pt-8 border-t border-outline-variant/10">
+                  <h3 className="font-headline font-bold text-primary mb-4">Course Progress</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/10">
+                      <p className="text-xs font-black uppercase text-on-surface-variant mb-1">Current Module</p>
+                      <p className="font-bold text-primary">Introduction to AI</p>
+                    </div>
+                    <div className="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/10">
+                      <p className="text-xs font-black uppercase text-on-surface-variant mb-1">Time Spent</p>
+                      <p className="font-bold text-primary">2h 45m</p>
+                    </div>
+                    <div className="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/10">
+                      <p className="text-xs font-black uppercase text-on-surface-variant mb-1">Next Lesson</p>
+                      <p className="font-bold text-secondary">Neural Networks</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Mobile Bottom Navigation */}

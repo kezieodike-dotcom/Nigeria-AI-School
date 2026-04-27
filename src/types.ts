@@ -16,6 +16,8 @@ export interface Course {
   duration: string;
   isBestseller?: boolean;
   isNew?: boolean;
+  videoUrl?: string;
+  type?: 'video' | 'text';
 }
 
 export interface Creator {
