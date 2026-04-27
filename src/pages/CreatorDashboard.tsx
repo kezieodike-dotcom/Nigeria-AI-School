@@ -36,7 +36,10 @@ export default function CreatorDashboard() {
   const [courseType, setCourseType] = useState('video');
   const [courseModules, setCourseModules] = useState([{ title: '', type: 'video', content: '', file: null }]);
   const [newCourseTitle, setNewCourseTitle] = useState('');
-  const [creatorCourses, setCreatorCourses] = useState<any[]>([]);
+  const [creatorCourses, setCreatorCourses] = useState<any[]>([
+    { id: '1', title: 'Introduction to Generative AI', thumbnail: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80', price: 25000, reviewsCount: 45 },
+    { id: '2', title: 'Advanced Neural Networks', thumbnail: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800&q=80', price: 35000, reviewsCount: 12 }
+  ]);
 
   const handleLogout = async () => {
     await signOut();
@@ -44,10 +47,10 @@ export default function CreatorDashboard() {
   };
 
   const stats = [
-    { label: 'Total Revenue', value: '₦0', growth: '0%', icon: DollarSign, glow: 'green' as const },
-    { label: 'Enrollments', value: '0', growth: '0%', icon: Users, glow: 'blue' as const },
-    { label: 'Avg. Rating', value: '0.0', growth: '0.0', icon: BarChart3, glow: 'orange' as const },
-    { label: 'Watch Time', value: '0 hrs', growth: '0%', icon: PlayCircle, glow: 'purple' as const },
+    { label: 'Total Revenue', value: '₦45,000', growth: '+12.5%', icon: DollarSign, glow: 'green' as const },
+    { label: 'Enrollments', value: '57', growth: '+8.2%', icon: Users, glow: 'blue' as const },
+    { label: 'Avg. Rating', value: '4.8', growth: '+0.3', icon: BarChart3, glow: 'orange' as const },
+    { label: 'Watch Time', value: '128 hrs', growth: '+15%', icon: PlayCircle, glow: 'purple' as const },
   ];
 
 
@@ -85,7 +88,7 @@ export default function CreatorDashboard() {
               <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Earnings this month</p>
             </div>
             <div className="flex items-end justify-between h-40 gap-3">
-              {[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0].map((h, i) => (
+              {[40, 65, 45, 80, 55, 90, 75, 60, 85, 50, 70, 95].map((h, i) => (
                 <div key={i} className="flex-grow bg-primary/5 rounded-t-lg group relative h-full flex flex-col justify-end">
                    <div className="bg-primary/20 group-hover:bg-primary transition-all duration-500 rounded-t-lg" style={{ height: `${h}%` }} />
                 </div>
