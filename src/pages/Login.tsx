@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Lock, Mail, AlertCircle, Loader2 } from 'lucide-react';
+import { ArrowRight, Lock, Mail, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const location = import.meta.env.SSR ? null : window.location;
   const queryRole = new URLSearchParams(location?.search).get('role') as 'student' | 'creator';
 
@@ -16,16 +16,17 @@ export default function Login() {
   const [role, setRole] = useState<'student' | 'creator'>(queryRole || 'student');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   React.useEffect(() => {
-    if (user) {
-      if (role === 'creator') {
+    if (user && profile) {
+      if (profile.role === 'creator') {
         navigate('/creator-dashboard');
       } else {
         navigate('/dashboard');
       }
     }
-  }, [user, navigate, role]);
+  }, [user, profile, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,16 +41,28 @@ export default function Login() {
 
       if (error) throw error;
       
-      // Update metadata if they selected creator and weren't one before
-      if (role === 'creator' && data.user?.user_metadata?.role !== 'creator') {
-        await supabase.auth.updateUser({ data: { role: 'creator' } });
-      }
+      if (data.user) {
+        // Directly fetch the profile and redirect based on the actual database role
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', data.user.id)
+          .single();
 
-      window.showToast('Logged in successfully!');
-      if (role === 'creator') {
-        navigate('/creator-dashboard');
-      } else {
-        navigate('/dashboard');
+        if (profileError) {
+          console.error('Profile fetch error:', profileError);
+          // Fallback to student dashboard if profile can't be fetched
+          navigate('/dashboard');
+          return;
+        }
+
+        if (profileData?.role === 'creator') {
+          navigate('/creator-dashboard');
+        } else if (profileData?.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/dashboard');
+        }
       }
     } catch (err: any) {
       console.error('Login error:', err);
@@ -120,13 +133,20 @@ export default function Login() {
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
               <input 
-                type="password" 
+                type={showPassword ? "text" : "password"} 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password" 
-                className="w-full pl-12 pr-4 py-4 rounded-xl bg-surface-container-lowest border border-outline-variant/20 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                className="w-full pl-12 pr-12 py-4 rounded-xl bg-surface-container-lowest border border-outline-variant/20 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
             </div>
           </div>
 

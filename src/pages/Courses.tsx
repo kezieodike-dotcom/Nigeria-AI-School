@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Star, ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react';
+import { Search, SlidersHorizontal, Star } from 'lucide-react';
 import { COURSES } from '../constants';
 import CourseCard from '../components/CourseCard';
 import { cn } from '../lib/utils';
@@ -7,56 +7,49 @@ import { cn } from '../lib/utils';
 export default function Courses() {
   const [activeCategory, setActiveCategory] = React.useState('All Courses');
   const categories = ['All Courses', 'AI & ML', 'Data Science', 'Web Development', 'Automation', 'Programming'];
-  const [displayText, setDisplayText] = React.useState('');
-  const fullText = "From beginner to advanced, our courses are designed to help you understand AI from the ground up, build real-world tech projects, and stay ahead in a rapidly evolving digital world.";
-  
-  React.useEffect(() => {
-    let i = 0;
-    const interval = setInterval(() => {
-      setDisplayText(fullText.slice(0, i));
-      i++;
-      if (i > fullText.length) clearInterval(interval);
-    }, 10);
-    return () => clearInterval(interval);
-  }, []);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12 space-y-12 md:space-y-16">
-      {/* Hero & Search */}
-      <section className="space-y-8">
-        <h1 className="text-3xl md:text-6xl font-extrabold font-headline tracking-tight text-primary mb-4 md:mb-6 leading-[1.1]">
-          Learn Skills That <br className="hidden md:block" /><span className="text-secondary italic">Matter.</span>
-        </h1>
-        <p className="text-on-surface-variant text-base md:text-lg max-w-2xl mb-8 md:mb-10 leading-relaxed min-h-[4rem] font-medium">
-          {displayText}
-          <span className="inline-block w-1.5 h-5 ml-1 bg-secondary animate-pulse align-middle" />
-        </p>
-
-        <div className="glass-effect p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] space-y-6 md:space-y-8 border border-white/40">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-grow group">
-              <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors" size={22} />
-              <input 
-                type="text" 
-                placeholder="Search for AI, ML, Data Science..." 
-                className="w-full pl-12 md:pl-14 pr-6 py-3.5 md:py-5 bg-white/50 backdrop-blur-sm border border-outline-variant/10 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:bg-white focus:border-primary/30 transition-all text-on-surface text-sm md:text-base font-medium placeholder:text-on-surface-variant/50"
-              />
+    <div className="bg-white">
+      <section className="border-b border-outline-variant bg-[radial-gradient(circle_at_20%_20%,rgba(0,212,164,0.16),transparent_28%),linear-gradient(180deg,#f5e9d8_0%,#ffffff_100%)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 md:py-20 lg:py-24">
+          <div className="grid lg:grid-cols-[minmax(0,1fr)_390px] gap-8 lg:gap-16 items-end">
+            <div className="max-w-5xl">
+              <h1 className="font-headline text-[2.35rem] sm:text-5xl md:text-[3.75rem] lg:text-[4.25rem] font-semibold text-primary leading-[1.04] max-w-5xl">
+                Courses built for practical AI fluency.
+              </h1>
+              <p className="mt-5 max-w-[62ch] text-base md:text-lg text-on-surface-variant leading-7">
+                From beginner foundations to creator-ready technical skills, every course is structured for clarity, practice, and measurable progress.
+              </p>
             </div>
-            <button className="bg-primary text-white px-8 md:px-10 py-3.5 md:py-5 rounded-2xl font-black text-xs md:text-sm uppercase tracking-widest hover:opacity-90 active:scale-95 transition-all shadow-xl shadow-primary/20">
-              Find Your Course
-            </button>
+            <div className="rounded-xl border border-outline-variant bg-white/88 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={18} />
+                <input
+                  type="text"
+                  placeholder="Search courses"
+                  className="h-11 w-full rounded-lg border border-outline-variant bg-surface-container-low pl-11 pr-4 text-sm outline-none focus:border-secondary focus:bg-white"
+                />
+              </div>
+              <button className="mt-3 w-full rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white hover:bg-primary-container active:scale-95 transition-all">
+                Find Your Course
+              </button>
+            </div>
           </div>
+        </div>
+      </section>
 
-          <div className="flex flex-wrap gap-3">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12">
+        <div className="-mx-4 sm:mx-0 mb-8 overflow-x-auto px-4 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex w-max min-w-full gap-2">
             {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
                 className={cn(
-                  "px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all whitespace-nowrap border",
-                  activeCategory === cat 
-                    ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" 
-                    : "bg-white/50 text-on-surface-variant border-outline-variant/10 hover:bg-white hover:border-primary/20 hover:text-primary"
+                  'shrink-0 rounded-full border px-4 py-2.5 text-sm font-medium transition-colors active:scale-[0.98]',
+                  activeCategory === cat
+                    ? 'border-primary bg-primary text-white'
+                    : 'border-outline-variant bg-white text-on-surface-variant hover:text-primary hover:bg-surface-container'
                 )}
               >
                 {cat}
@@ -64,69 +57,63 @@ export default function Courses() {
             ))}
           </div>
         </div>
-      </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
-        {/* Sidebar Filters */}
-        <aside className="hidden lg:block space-y-10">
-          <div>
-            <h3 className="font-headline font-bold text-lg mb-6 text-primary">Difficulty</h3>
-            <div className="space-y-4">
-              {['Beginner', 'Intermediate', 'Advanced'].map((level) => (
-                <label key={level} className="flex items-center gap-3 cursor-pointer group">
-                  <input type="checkbox" className="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary/20" />
-                  <span className="text-on-surface-variant group-hover:text-on-surface transition-colors">{level}</span>
-                </label>
-              ))}
+        <div className="grid lg:grid-cols-[224px_minmax(0,1fr)] gap-8 xl:gap-10">
+          <aside className="hidden lg:block">
+            <div className="sticky top-24 rounded-xl border border-outline-variant bg-white p-5">
+              <div className="flex items-center gap-2 text-sm font-semibold text-primary mb-5">
+                <SlidersHorizontal size={16} />
+                Filters
+              </div>
+              <div className="space-y-7">
+                <FilterGroup title="Difficulty" options={['Beginner', 'Intermediate', 'Advanced']} />
+                <FilterGroup title="Price" options={['Free', 'Under NGN 50k', 'Premium']} />
+                <div>
+                  <h3 className="mb-3 text-sm font-semibold text-primary">Ratings</h3>
+                  {[4.5, 4.0].map((rating) => (
+                    <label key={rating} className="flex items-center gap-2 py-1.5 text-sm text-on-surface-variant">
+                      <input type="checkbox" className="h-4 w-4 rounded border-outline-variant accent-primary" />
+                      <Star size={15} fill="#00d4a4" className="text-secondary" />
+                      {rating} and up
+                    </label>
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
+          </aside>
 
-          <div>
-            <h3 className="font-headline font-bold text-lg mb-6 text-primary">Price Range</h3>
-            <div className="space-y-4">
-              {['Free', 'Paid (Under ₦50k)', 'Premium'].map((range) => (
-                <label key={range} className="flex items-center gap-3 cursor-pointer group">
-                  <input type="radio" name="price" className="w-5 h-5 border-outline-variant text-primary focus:ring-primary/20" />
-                  <span className="text-on-surface-variant group-hover:text-on-surface transition-colors">{range}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <h3 className="font-headline font-bold text-lg mb-6 text-primary">Ratings</h3>
-            <div className="space-y-4">
-              {[4.5, 4.0].map((rating) => (
-                <label key={rating} className="flex items-center gap-2 cursor-pointer group">
-                  <Star size={18} fill="#eab308" className="text-yellow-500" />
-                  <span className="text-on-surface-variant group-hover:text-on-surface transition-colors">{rating} & up</span>
-                </label>
-              ))}
-            </div>
-          </div>
-        </aside>
-
-        {/* Course Grid */}
-        <div className="lg:col-span-3 space-y-12">
-          <div className="flex justify-between items-center">
-            <span className="text-on-surface-variant font-medium">Showing {COURSES.length} courses</span>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-on-surface-variant">Sort by:</span>
-              <select className="bg-transparent border-none text-sm font-bold text-primary focus:ring-0 cursor-pointer">
+          <main className="space-y-6 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <p className="text-sm text-on-surface-variant">Showing {COURSES.length} courses</p>
+              <select className="h-10 w-full sm:w-auto rounded-lg border border-outline-variant bg-white px-3 text-sm font-medium text-primary outline-none">
                 <option>Most Popular</option>
                 <option>Newest First</option>
                 <option>Price: Low to High</option>
               </select>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
-            {COURSES.map((course) => (
-              <CourseCard key={course.id} course={course} />
-            ))}
-          </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 xl:gap-5">
+              {COURSES.map((course) => (
+                <CourseCard key={course.id} course={course} />
+              ))}
+            </div>
+          </main>
         </div>
       </div>
+    </div>
+  );
+}
+
+function FilterGroup({ title, options }: { title: string; options: string[] }) {
+  return (
+    <div>
+      <h3 className="mb-3 text-sm font-semibold text-primary">{title}</h3>
+      {options.map((option) => (
+        <label key={option} className="flex items-center gap-2 py-1.5 text-sm text-on-surface-variant">
+          <input type="checkbox" className="h-4 w-4 rounded border-outline-variant accent-primary" />
+          {option}
+        </label>
+      ))}
     </div>
   );
 }

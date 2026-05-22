@@ -27,12 +27,30 @@ import { GlowCard } from '../components/ui/spotlight-card';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [activeTab, setActiveTab] = useState('Overview');
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [courseType, setCourseType] = useState('video');
   const [newCourseTitle, setNewCourseTitle] = useState('');
+  const [selectedVideo, setSelectedVideo] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [adminCourses, setAdminCourses] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (profile && profile.role !== 'admin') {
+      navigate('/dashboard');
+      return;
+    }
+    fetchCourses();
+  }, [user, navigate]);
+
+  const fetchCourses = async () => {
+    const { data, error } = await supabase
+      .from('courses')
+      .select('id, title, thumbnail, status, created_at')
+      .order('created_at', { ascending: false });
+    if (!error && data) setAdminCourses(data);
+  };
 
   const stats = [
     { label: 'Total Revenue', value: '₦12.4M', growth: '+24%', icon: DollarSign, glow: 'green' as const },
@@ -341,9 +359,11 @@ export default function AdminDashboard() {
                           className="border-2 border-dashed border-outline-variant/20 rounded-2xl p-8 flex flex-col items-center justify-center text-center hover:border-primary/50 transition-colors cursor-pointer bg-surface-container-lowest"
                         >
                           <Upload size={32} className="text-primary/40 mb-4" />
-                          <p className="font-bold text-primary">Upload Video File</p>
-                          <p className="text-xs text-on-surface-variant mt-1">MP4, WebM or MOV (Max 2GB)</p>
-                          <input id="admin-video-upload" type="file" className="hidden" accept="video/*" onChange={(e) => window.showToast("Video selected: " + e.target.files?.[0]?.name)} />
+                          <p className="font-bold text-primary">{selectedVideo ? selectedVideo.name : "Upload Video File"}</p>
+                          <p className="text-xs text-on-surface-variant mt-1">{selectedVideo ? (selectedVideo.size / (1024 * 1024)).toFixed(2) + " MB" : "MP4, WebM or MOV (Max 2GB)"}</p>
+                          <input id="admin-video-upload" type="file" className="hidden" accept="video/*" onChange={(e) => {
+                            if (e.target.files?.[0]) setSelectedVideo(e.target.files[0]);
+                          }} />
                         </div>
                       </div>
                     ) : (
@@ -359,24 +379,61 @@ export default function AdminDashboard() {
                 </div>
                 <div className="pt-6 border-t border-outline-variant/10 flex justify-between items-center mt-4">
                   <button onClick={() => setShowUploadModal(false)} className="text-on-surface-variant font-bold hover:text-primary px-4 py-2">Cancel</button>
-                  <button 
-                    onClick={() => {
-                      if (newCourseTitle.trim()) {
-                        setAdminCourses([...adminCourses, {
-                          id: Date.now().toString(),
-                          title: newCourseTitle,
-                          thumbnail: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=500&q=80'
-                        }]);
+                   <button 
+                    disabled={isUploading || !newCourseTitle.trim()}
+                    onClick={async () => {
+                      if (!newCourseTitle.trim()) return;
+                      setIsUploading(true);
+                      try {
+                        let mediaUrl = '';
+                        if (courseType === 'video' && selectedVideo) {
+                          const fileExt = selectedVideo.name.split('.').pop();
+                          const fileName = `admin-${Date.now()}.${fileExt}`;
+                          
+                          const { data: uploadData, error: uploadError } = await supabase.storage
+                            .from('courses')
+                            .upload(fileName, selectedVideo, {
+                              cacheControl: '3600',
+                              upsert: false
+                            });
+
+                          if (uploadError) throw uploadError;
+
+                          const { data: publicUrlData } = supabase.storage
+                            .from('courses')
+                            .getPublicUrl(fileName);
+
+                          mediaUrl = publicUrlData.publicUrl;
+                        }
+
+                        const { error } = await supabase
+                          .from('courses')
+                          .insert([{
+                            title: newCourseTitle,
+                            instructor_id: user?.id,
+                            type: courseType,
+                            video_url: mediaUrl,
+                            status: 'published',
+                            price: 25000, 
+                            thumbnail: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800&q=80'
+                          }]);
+
+                        if (error) throw error;
+
+                        await fetchCourses();
                         setNewCourseTitle('');
+                        setSelectedVideo(null);
+                        setShowUploadModal(false);
                         window.showToast?.("Course published successfully!");
-                      } else {
-                        window.showToast?.("Please enter a course title.");
+                      } catch (error: any) {
+                        window.showToast?.("Failed to publish course: " + error.message, "error");
+                      } finally {
+                        setIsUploading(false);
                       }
-                      setShowUploadModal(false);
                     }} 
-                    className="bg-secondary text-white px-8 py-3 rounded-xl font-black flex items-center gap-2"
+                    className="bg-secondary text-white px-8 py-3 rounded-xl font-black flex items-center gap-2 disabled:opacity-50"
                   >
-                    <CheckCircle size={18} /> Publish Course
+                    {isUploading ? <><Upload size={18} className="animate-bounce" /> Uploading...</> : <><CheckCircle size={18} /> Publish Course</>}
                   </button>
                 </div>
               </div>

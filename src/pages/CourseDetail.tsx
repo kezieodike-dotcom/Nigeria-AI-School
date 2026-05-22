@@ -3,16 +3,101 @@ import { useParams, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Star, PlayCircle, Clock, Video, FileText, CheckCircle2, ChevronDown, Share2, ShieldCheck, GraduationCap, Users } from 'lucide-react';
 import { COURSES } from '../constants';
+import { Course } from '../types';
 import { cn } from '../lib/utils';
 import { GlowCard } from '../components/ui/spotlight-card';
 
+import { supabase } from '../lib/supabase';
+
 export default function CourseDetail() {
   const { id } = useParams<{ id: string }>();
-  // For MVP, just find the course or fall back to the first one
-  const course = COURSES.find(c => c.id === id) || COURSES[0];
-
+  const [course, setCourse] = React.useState<Course & Record<string, any> | null>(null);
+  const [reviews, setReviews] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
   const [activeModule, setActiveModule] = React.useState<number | null>(0);
   const [activeVideo, setActiveVideo] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    fetchCourseData();
+  }, [id]);
+
+  const fetchCourseData = async () => {
+    if (!id) return;
+    setLoading(true);
+    try {
+      const fallbackCourse = COURSES.find((item) => item.id === id);
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+
+      if (!isUuid) {
+        setCourse(fallbackCourse || null);
+        setReviews([]);
+        return;
+      }
+
+      // 1. Fetch Course
+      const { data: courseData, error: courseError } = await supabase
+        .from('courses')
+        .select('*, instructor:profiles!instructor_id(first_name, last_name, avatar_url)')
+        .eq('id', id)
+        .single();
+
+      if (courseError) throw courseError;
+      setCourse({
+        id: courseData.id,
+        title: courseData.title,
+        description: courseData.description || '',
+        category: courseData.category || 'AI & ML',
+        rating: courseData.rating || 0,
+        reviewsCount: courseData.reviews_count || 0,
+        price: courseData.price || 0,
+        instructor: {
+          name: `${courseData.instructor?.first_name || 'Expert'} ${courseData.instructor?.last_name || 'Instructor'}`.trim(),
+          role: 'AI Specialist',
+          avatar: courseData.instructor?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(courseData.instructor?.first_name || 'AI')}&background=1E40AF&color=fff`,
+        },
+        thumbnail: courseData.thumbnail || 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800&q=80',
+        duration: courseData.duration || '0 hrs',
+        videoUrl: courseData.video_url,
+        type: courseData.type || 'video',
+        instructor_id: courseData.instructor_id,
+        students: courseData.students || 0,
+        created_at: courseData.created_at,
+      });
+
+      // 2. Fetch Reviews
+      const { data: reviewsData } = await supabase
+        .from('reviews')
+        .select('*, profiles:user_id(first_name, last_name, avatar_url)')
+        .eq('course_id', id)
+        .order('created_at', { ascending: false });
+      
+      if (reviewsData) setReviews(reviewsData);
+
+    } catch (error) {
+      console.error('Error fetching course:', error);
+      const fallbackCourse = COURSES.find((item) => item.id === id);
+      setCourse(fallbackCourse || null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-surface">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!course) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-surface p-6">
+        <h2 className="text-2xl font-bold text-primary mb-4">Course not found</h2>
+        <Link to="/courses" className="text-secondary font-bold hover:underline">Back to Courses</Link>
+      </div>
+    );
+  }
   
   // Mock course asset
   const sampleVideoUrl = "https://www.w3schools.com/html/mov_bbb.mp4";
@@ -53,16 +138,16 @@ export default function CourseDetail() {
             <div className="flex flex-wrap items-center gap-6 pt-4 text-sm text-white/70">
               <div className="flex items-center gap-1 text-amber-400 font-bold">
                 <Star fill="currentColor" size={18} />
-                <span className="text-white ml-1">{course.rating}</span>
-                <span className="text-white/50 font-normal">({course.reviewsCount.toLocaleString()} ratings)</span>
+                <span className="text-white ml-1">{course.rating || '0.0'}</span>
+                <span className="text-white/50 font-normal">({reviews.length} ratings)</span>
               </div>
               <div className="flex items-center gap-2">
                 <Users size={18} />
-                <span>{(course.reviewsCount * 3.5).toFixed(0).toLocaleString()} students enrolled</span>
+                <span>{(course.students || 0).toLocaleString()} students enrolled</span>
               </div>
               <div className="flex items-center gap-2">
                 <Clock size={18} />
-                <span>Last updated 10/2024</span>
+                <span>Last updated {course.created_at ? new Date(course.created_at).toLocaleDateString() : 'recently'}</span>
               </div>
             </div>
 
@@ -71,13 +156,16 @@ export default function CourseDetail() {
                 src={course.instructor.avatar} 
                 alt={course.instructor.name}
                 className="w-12 h-12 rounded-full border-2 border-white/20 object-cover"
-                referrerPolicy="no-referrer"
               />
               <div>
                 <p className="font-medium text-white/70 text-sm">Created by</p>
-                <Link to="/creator/1" className="font-bold text-secondary hover:text-white transition-colors">
-                  {course.instructor.name}
-                </Link>
+                {course.instructor_id ? (
+                  <Link to={`/creator/${course.instructor_id}`} className="font-bold text-secondary hover:text-white transition-colors">
+                    {course.instructor.name}
+                  </Link>
+                ) : (
+                  <span className="font-bold text-secondary">{course.instructor.name}</span>
+                )}
               </div>
             </div>
           </div>
@@ -168,6 +256,42 @@ export default function CourseDetail() {
             </div>
           </section>
 
+          {/* Reviews */}
+          <section className="pt-8">
+            <h2 className="font-headline font-bold text-2xl md:text-3xl text-primary mb-8">Student Reviews</h2>
+            <div className="space-y-6">
+              {reviews.map((review) => {
+                const studentName = review.profiles ? `${review.profiles.first_name} ${review.profiles.last_name}` : 'Student';
+                const studentAvatar = review.profiles?.avatar_url || `https://ui-avatars.com/api/?name=${studentName}&background=1E40AF&color=fff`;
+                
+                return (
+                  <div key={review.id} className="bg-white p-6 rounded-2xl border border-outline-variant/10 shadow-sm">
+                    <div className="flex items-center gap-4 mb-4">
+                      <img src={studentAvatar} alt={studentName} className="w-12 h-12 rounded-full object-cover" />
+                      <div>
+                        <p className="font-bold text-primary">{studentName}</p>
+                        <div className="flex items-center gap-1 text-amber-500">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} size={14} fill={i < review.rating ? "currentColor" : "none"} />
+                          ))}
+                          <span className="text-xs text-on-surface-variant ml-2">{new Date(review.created_at).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-on-surface-variant leading-relaxed italic">
+                      "{review.content || review.comment}"
+                    </p>
+                  </div>
+                );
+              })}
+              {reviews.length === 0 && (
+                <div className="p-12 text-center bg-surface-container-lowest rounded-3xl border border-dashed border-outline-variant/20">
+                  <Star className="mx-auto text-outline-variant mb-4" size={48} />
+                  <p className="text-on-surface-variant font-medium">No reviews yet. Be the first to share your experience!</p>
+                </div>
+              )}
+            </div>
+          </section>
         </div>
 
         {/* 🚀 Sticky Sidebar Checkout - Reordered for mobile to appear at top if needed, but keeping standard flow for now with optimized mobile padding */}
@@ -182,8 +306,10 @@ export default function CourseDetail() {
               <div className="relative h-56 bg-black">
                 <video 
                   src={activeVideo} 
-                  controls 
                   autoPlay 
+                  controlsList="nodownload nofullscreen" 
+                  disablePictureInPicture 
+                  onContextMenu={(e) => e.preventDefault()}
                   className="w-full h-full object-contain"
                 />
               </div>
@@ -237,7 +363,7 @@ export default function CourseDetail() {
                 </div>
                 <div className="flex items-center gap-3">
                   <FileText size={18} />
-                  <span>24 articles and downloadable resources</span>
+                  <span>24 articles and resources</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <ShieldCheck size={18} />

@@ -18,6 +18,7 @@ export const COURSES: Course[] = [
     thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBPQ9EK1XQGbKatnJalNpA4UdD-LJmlfJ4tIka4EayAxRUYNVMaOFtj6aic4-pTgiW8mktG7cSSLDPLMKhBRhLQ29QJca8XzO_PvftHI2jZoejkcclTc_VALMmkNfsRloiIV1-hNtwgxkVcll2BGqA071QFqRf9mz2Go9jf4MXtmHPwU2WmwVtzExkTIz-byxv5-M5MSNVZPGAA5YtTj2ArjvCRfdUigWm8G_kTKbbKkuqKmZ_oIKnpHsPBOAEImauCTfSoP1nL-8jx',
     duration: '12 hrs content',
     isBestseller: true,
+    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
   },
   {
     id: '2',
@@ -34,6 +35,7 @@ export const COURSES: Course[] = [
     },
     thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAnhCVaYbZMPtO0lqnPuuKDNCHQjJsuZm1d8R8Pl-ESo3l4v9bnLFreQ3RF_TRrKvivgK4M2IhAGWt64_-KTy9nClugWgoUOmrnXLM5oxCGFDYptnj88TPYYSjkAxMBJ7Lm6DbzLhvbFv2K3hjuCoJBfTJ9bqKiPi0xr1t70u4VZfCSuum4oOOQiDXoLfdfh3OgDSUIsIB3uu20Y9VHh1sORViEKmCinxlM5ctOsGYxPVKFyrLszK6r_HfqnaLWxj5VVhlhUfkJVn-c',
     duration: '24 hrs content',
+    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
   },
   {
     id: '3',

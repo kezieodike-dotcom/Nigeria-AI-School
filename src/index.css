@@ -1,32 +1,33 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-headline: "Manrope", sans-serif;
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-headline: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", "SF Mono", Menlo, Consolas, monospace;
 
-  --color-primary: #00154d;
-  --color-primary-container: #042879;
-  --color-secondary: #006c49;
-  --color-secondary-fixed-dim: #4edea3;
-  --color-tertiary: #001940;
-  --color-surface: #f7f9fb;
+  --color-primary: #0a0a0a;
+  --color-primary-container: #1c1c1e;
+  --color-secondary: #00d4a4;
+  --color-secondary-fixed-dim: #7cebcb;
+  --color-tertiary: #1a3d4a;
+  --color-surface: #ffffff;
   --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #f2f4f6;
-  --color-surface-container: #eceef0;
-  --color-surface-container-high: #e6e8ea;
-  --color-surface-container-highest: #e0e3e5;
-  --color-on-surface: #191c1e;
-  --color-on-surface-variant: #454652;
-  --color-outline-variant: #c6c5d4;
+  --color-surface-container-low: #fafafa;
+  --color-surface-container: #f7f7f7;
+  --color-surface-container-high: #ededed;
+  --color-surface-container-highest: #e5e5e5;
+  --color-on-surface: #0a0a0a;
+  --color-on-surface-variant: #5a5a5c;
+  --color-outline-variant: #e5e5e5;
 
   /* Vibrant Category Colors */
-  --color-ai-purple: #8b5cf6;
-  --color-ai-purple-container: #ede9fe;
-  --color-data-teal: #14b8a6;
-  --color-data-teal-container: #ccfbf1;
-  --color-web-gold: #f59e0b;
-  --color-web-gold-container: #fef3c7;
+  --color-ai-purple: #3772cf;
+  --color-ai-purple-container: #e9f0ff;
+  --color-data-teal: #00b48a;
+  --color-data-teal-container: #dffbf3;
+  --color-web-gold: #c37d0d;
+  --color-web-gold-container: #fff5df;
 
   /* Premium Gradients */
   --bg-gradient-ai: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
@@ -47,11 +48,12 @@
   }
   * {
     -webkit-tap-highlight-color: transparent;
+    letter-spacing: 0 !important;
   }
 }
 
 .glass-effect {
-  @apply bg-white/70 backdrop-blur-xl border border-white/20;
+  @apply bg-white/90 backdrop-blur-xl border border-outline-variant/80;
 }
 
 .ghost-border {
@@ -70,4 +72,24 @@
 
 .gradient-text-web {
   @apply text-transparent bg-clip-text bg-gradient-to-r from-web-gold to-orange-500;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
 }

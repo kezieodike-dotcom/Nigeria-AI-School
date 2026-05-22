@@ -19,6 +19,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import { ToastContainer } from './components/Toast';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 
 import HowItWorks from './pages/HowItWorks';
 
@@ -29,45 +30,55 @@ export default function App() {
   return (
     <AuthProvider>
       <Router>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/courses" element={<Courses />} />
-            <Route 
-              path="/dashboard" 
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/creator-dashboard" 
-              element={
-                <ProtectedRoute>
-                  <CreatorDashboard />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/admin" 
-              element={
-                <ProtectedRoute>
-                  <AdminDashboard />
-                </ProtectedRoute>
-              } 
-            />
-            <Route path="/how-it-works" element={<HowItWorks />} />
-            <Route path="/about" element={<AboutUs />} />
-            <Route path="/contact-us" element={<ContactUs />} />
-            <Route path="/become-creator" element={<BecomeCreator />} />
-            <Route path="/course/:id" element={<CourseDetail />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/creator/:id" element={<CreatorProfile />} />
-          </Routes>
-        </Layout>
-        <ToastContainer />
+        <ErrorBoundary>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/courses" element={<Courses />} />
+              <Route 
+                path="/dashboard" 
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/creator-dashboard" 
+                element={
+                  <ProtectedRoute allowedRoles={['creator', 'admin']}>
+                    <CreatorDashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route path="/how-it-works" element={<HowItWorks />} />
+              <Route path="/about" element={<AboutUs />} />
+              <Route path="/contact-us" element={<ContactUs />} />
+              <Route path="/become-creator" element={<BecomeCreator />} />
+              <Route path="/course/:id" element={<CourseDetail />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route 
+                path="/creator-profile" 
+                element={
+                  <ProtectedRoute>
+                    <CreatorProfile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/creator/:id" element={<CreatorProfile />} />
+            </Routes>
+          </Layout>
+          <ToastContainer />
+        </ErrorBoundary>
       </Router>
     </AuthProvider>
   );
