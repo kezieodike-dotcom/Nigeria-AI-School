@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Clock, CreditCard, PlayCircle, Star, Users } from 'lucide-react';
 import { Course } from '../types';
 import { cn } from '../lib/utils';
+import SecureVideo from './SecureVideo';
 
 interface CourseCardProps {
   course: Course;
@@ -22,7 +23,7 @@ export default function CourseCard({ course, className }: CourseCardProps) {
           referrerPolicy="no-referrer"
         />
         {course.videoUrl ? (
-          <video
+          <SecureVideo
             src={course.videoUrl}
             poster={course.thumbnail}
             className="absolute inset-0 h-full w-full object-cover opacity-72 transition-transform duration-500 group-hover:scale-105"

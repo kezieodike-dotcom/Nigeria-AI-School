@@ -13,6 +13,26 @@ function jsonResponse(body: Record<string, unknown>, status = 200) {
   });
 }
 
+function getBearerToken(req: Request) {
+  const authHeader = req.headers.get("Authorization") ?? "";
+  return authHeader.replace(/^Bearer\s+/i, "").trim();
+}
+
+function getCourseStoragePath(videoUrl?: string | null) {
+  if (!videoUrl) return null;
+  if (!/^https?:\/\//i.test(videoUrl)) return videoUrl.replace(/^\/+/, "");
+
+  try {
+    const url = new URL(videoUrl);
+    const marker = "/storage/v1/object/public/courses/";
+    const markerIndex = url.pathname.indexOf(marker);
+    if (markerIndex === -1) return null;
+    return decodeURIComponent(url.pathname.slice(markerIndex + marker.length));
+  } catch {
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -32,6 +52,33 @@ Deno.serve(async (req) => {
   const supabase = createClient(supabaseUrl, serviceRoleKey, {
     auth: { persistSession: false },
   });
+
+  let canAccessVideos = false;
+  const bearerToken = getBearerToken(req);
+  if (bearerToken) {
+    const { data: { user } } = await supabase.auth.getUser(bearerToken);
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (["admin", "creator"].includes(profile?.role ?? "")) {
+        canAccessVideos = true;
+      } else {
+        const { data: subscription } = await supabase
+          .from("subscriptions")
+          .select("id")
+          .eq("student_id", user.id)
+          .eq("status", "active")
+          .gt("expires_at", new Date().toISOString())
+          .limit(1)
+          .maybeSingle();
+        canAccessVideos = Boolean(subscription);
+      }
+    }
+  }
 
   const { data: courses, error } = await supabase
     .from("courses")
@@ -54,9 +101,13 @@ Deno.serve(async (req) => {
 
   const profilesById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
 
-  return jsonResponse({
-    courses: (courses ?? []).map((course) => {
+  const secureCourses = await Promise.all((courses ?? []).map(async (course) => {
       const instructor = profilesById.get(course.instructor_id);
+      const videoPath = canAccessVideos ? getCourseStoragePath(course.video_url) : null;
+      const { data: signedVideo } = videoPath
+        ? await supabase.storage.from("courses").createSignedUrl(videoPath, 60 * 10)
+        : { data: null };
+
       return {
         id: course.id,
         title: course.title,
@@ -67,7 +118,7 @@ Deno.serve(async (req) => {
         price: Math.max(Number(course.price || 0), 15000),
         thumbnail: course.thumbnail || "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800&q=80",
         duration: course.duration || "Self-paced",
-        videoUrl: course.video_url,
+        videoUrl: signedVideo?.signedUrl,
         type: course.type || "video",
         instructor: {
           name: `${instructor?.first_name || "Expert"} ${instructor?.last_name || "Instructor"}`.trim(),
@@ -75,6 +126,9 @@ Deno.serve(async (req) => {
           avatar: instructor?.avatar_url || "https://ui-avatars.com/api/?name=AI&background=00154d&color=fff",
         },
       };
-    }),
+    }));
+
+  return jsonResponse({
+    courses: secureCourses,
   });
 });

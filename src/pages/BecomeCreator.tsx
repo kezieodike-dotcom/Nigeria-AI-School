@@ -1,10 +1,77 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
-import { Sparkles, Rocket, DollarSign, Users, CheckCircle2, ArrowRight, PlayCircle, Globe, ShieldCheck } from 'lucide-react';
+import { Sparkles, Rocket, DollarSign, Users, CheckCircle2, ArrowRight, PlayCircle, Globe, ShieldCheck, Loader2 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 
 export default function BecomeCreator() {
+  const { user, profile } = useAuth();
+  const [fullName, setFullName] = React.useState('');
+  const [email, setEmail] = React.useState('');
+  const [expertise, setExpertise] = React.useState('');
+  const [experience, setExperience] = React.useState('');
+  const [courseIdea, setCourseIdea] = React.useState('');
+  const [portfolioUrl, setPortfolioUrl] = React.useState('');
+  const [applicationStatus, setApplicationStatus] = React.useState<string | null>(null);
+  const [submitting, setSubmitting] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!user) return;
+    setFullName(`${profile?.first_name || ''} ${profile?.last_name || ''}`.trim());
+    setEmail(user.email || '');
+
+    const loadApplication = async () => {
+      const { data } = await supabase
+        .from('creator_applications')
+        .select('status')
+        .eq('applicant_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      setApplicationStatus(data?.status || null);
+    };
+
+    void loadApplication();
+  }, [user, profile]);
+
+  const handleSubmitApplication = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!user) {
+      window.showToast?.('Please sign in or create a student account before applying.', 'error');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.from('creator_applications').insert({
+        applicant_id: user.id,
+        full_name: fullName.trim(),
+        email: email.trim().toLowerCase(),
+        expertise: expertise.trim(),
+        experience: experience.trim(),
+        course_idea: courseIdea.trim(),
+        portfolio_url: portfolioUrl.trim() || null,
+        status: 'pending',
+      });
+
+      if (error) throw error;
+
+      setApplicationStatus('pending');
+      setExpertise('');
+      setExperience('');
+      setCourseIdea('');
+      setPortfolioUrl('');
+      window.showToast?.('Creator application submitted for admin review.', 'success');
+    } catch (error: any) {
+      window.showToast?.(error.message || 'Unable to submit creator application.', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const benefits = [
     {
       title: "Earn Globally",
@@ -73,10 +140,10 @@ export default function BecomeCreator() {
               Teach what you know. Reach a global audience. Earn without limits. You teach. We handle the platform.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link to="/contact-us" className="inline-flex items-center gap-2 bg-secondary text-white px-10 py-4 rounded-xl font-bold text-lg shadow-xl shadow-secondary/20 hover:scale-[1.02] active:scale-95 transition-all">
-                Apply Through Admin
+              <a href="#creator-application" className="inline-flex items-center gap-2 bg-secondary text-white px-10 py-4 rounded-xl font-bold text-lg shadow-xl shadow-secondary/20 hover:scale-[1.02] active:scale-95 transition-all">
+                Apply as Creator
                 <ArrowRight size={20} />
-              </Link>
+              </a>
               <button className="bg-white/10 backdrop-blur-md text-white border border-white/20 px-10 py-4 rounded-xl font-bold text-lg hover:bg-white/20 transition-all flex items-center gap-2">
                 <PlayCircle size={20} />
                 Watch Creator Stories
@@ -154,9 +221,9 @@ export default function BecomeCreator() {
                   </div>
                 ))}
               </div>
-              <Link to="/contact-us" className="mt-12 flex items-center gap-2 text-primary font-bold hover:gap-4 transition-all group">
+              <a href="#creator-application" className="mt-12 flex items-center gap-2 text-primary font-bold hover:gap-4 transition-all group">
                 Start Your Application <ArrowRight size={20} />
-              </Link>
+              </a>
             </div>
             <div className="relative">
               <div className="absolute inset-0 bg-secondary/10 rounded-[2.5rem] rotate-3" />
@@ -191,6 +258,54 @@ export default function BecomeCreator() {
         </div>
       </section>
 
+      <section id="creator-application" className="max-w-4xl mx-auto px-6">
+        <div className="bg-white rounded-[2rem] border border-outline-variant/10 p-6 md:p-10 shadow-xl shadow-primary/5">
+          <div className="mb-8">
+            <p className="text-xs font-black uppercase tracking-widest text-secondary">Creator Application</p>
+            <h2 className="mt-2 font-headline font-bold text-3xl text-primary">Apply for creator approval</h2>
+            <p className="mt-3 text-on-surface-variant">
+              Submit your expertise and course idea. An admin will review it and approve qualified creators.
+            </p>
+          </div>
+
+          {!user ? (
+            <div className="rounded-2xl bg-surface-container-low p-6 text-center">
+              <p className="font-bold text-primary">Sign in before applying</p>
+              <p className="mt-2 text-sm text-on-surface-variant">Applications are connected to student accounts so admin can approve the right user.</p>
+              <div className="mt-5 flex flex-col sm:flex-row justify-center gap-3">
+                <Link to="/login?redirect=/become-creator" className="rounded-xl bg-primary px-6 py-3 text-sm font-black text-white">Login</Link>
+                <Link to="/signup" className="rounded-xl border border-outline-variant/20 px-6 py-3 text-sm font-black text-primary">Create Student Account</Link>
+              </div>
+            </div>
+          ) : applicationStatus === 'pending' ? (
+            <div className="rounded-2xl bg-amber-50 border border-amber-100 p-6 text-amber-800">
+              <p className="font-black">Your creator application is pending review.</p>
+              <p className="mt-2 text-sm">An admin will review your details and approve your creator dashboard when ready.</p>
+            </div>
+          ) : applicationStatus === 'approved' || profile?.role === 'creator' || profile?.role === 'admin' ? (
+            <div className="rounded-2xl bg-emerald-50 border border-emerald-100 p-6 text-emerald-800">
+              <p className="font-black">You are approved as a creator.</p>
+              <Link to="/creator-dashboard" className="mt-4 inline-flex rounded-xl bg-primary px-6 py-3 text-sm font-black text-white">Open Creator Dashboard</Link>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmitApplication} className="space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input value={fullName} onChange={(event) => setFullName(event.target.value)} required placeholder="Full name" className="w-full rounded-xl bg-surface-container-low px-4 py-3 outline-none focus:ring-2 focus:ring-primary/20" />
+                <input value={email} onChange={(event) => setEmail(event.target.value)} required type="email" placeholder="Email address" className="w-full rounded-xl bg-surface-container-low px-4 py-3 outline-none focus:ring-2 focus:ring-primary/20" />
+              </div>
+              <input value={expertise} onChange={(event) => setExpertise(event.target.value)} required placeholder="Your AI/tech expertise" className="w-full rounded-xl bg-surface-container-low px-4 py-3 outline-none focus:ring-2 focus:ring-primary/20" />
+              <textarea value={experience} onChange={(event) => setExperience(event.target.value)} required rows={4} placeholder="Tell us about your teaching, industry, or project experience" className="w-full rounded-xl bg-surface-container-low px-4 py-3 outline-none focus:ring-2 focus:ring-primary/20 resize-none" />
+              <textarea value={courseIdea} onChange={(event) => setCourseIdea(event.target.value)} required rows={4} placeholder="What course would you like to create first?" className="w-full rounded-xl bg-surface-container-low px-4 py-3 outline-none focus:ring-2 focus:ring-primary/20 resize-none" />
+              <input value={portfolioUrl} onChange={(event) => setPortfolioUrl(event.target.value)} placeholder="Portfolio, LinkedIn, YouTube, or website link" className="w-full rounded-xl bg-surface-container-low px-4 py-3 outline-none focus:ring-2 focus:ring-primary/20" />
+              <button disabled={submitting} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-4 font-black text-white disabled:opacity-60">
+                {submitting ? <Loader2 size={18} className="animate-spin" /> : <ArrowRight size={18} />}
+                Submit Application
+              </button>
+            </form>
+          )}
+        </div>
+      </section>
+
       {/* Final CTA */}
       <section className="max-w-7xl mx-auto px-6">
         <div className="bg-secondary rounded-[2rem] p-12 md:p-20 text-center relative overflow-hidden">
@@ -200,9 +315,9 @@ export default function BecomeCreator() {
           <h2 className="font-headline font-bold text-4xl md:text-5xl text-white mb-8 relative z-10">Ready to share your knowledge?</h2>
           <p className="text-white/80 text-xl mb-12 max-w-2xl mx-auto relative z-10">Join Africa's most prestigious AI creator community today.</p>
           <div className="flex justify-center relative z-10">
-            <Link to="/contact-us" className="bg-white text-secondary px-10 py-4 rounded-xl font-bold text-lg shadow-xl hover:scale-105 transition-all">
+            <a href="#creator-application" className="bg-white text-secondary px-10 py-4 rounded-xl font-bold text-lg shadow-xl hover:scale-105 transition-all">
               Apply Now
-            </Link>
+            </a>
           </div>
         </div>
       </section>

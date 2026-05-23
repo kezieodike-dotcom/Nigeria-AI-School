@@ -1130,7 +1130,7 @@ export default function CreatorDashboard() {
                     let mediaUrl = '';
                     if (courseType === 'video' && selectedVideo) {
                       const fileExt = selectedVideo.name.split('.').pop();
-                      const fileName = `${user?.id}-${Date.now()}.${fileExt}`;
+                      const fileName = `${user?.id}/${Date.now()}.${fileExt}`;
                       
                       const { data: uploadData, error: uploadError } = await supabase.storage
                         .from('courses')
@@ -1141,11 +1141,7 @@ export default function CreatorDashboard() {
 
                       if (uploadError) throw uploadError;
 
-                      const { data: publicUrlData } = supabase.storage
-                        .from('courses')
-                        .getPublicUrl(fileName);
-
-                      mediaUrl = publicUrlData.publicUrl;
+                      mediaUrl = uploadData.path;
                     }
 
                     const { error } = await supabase

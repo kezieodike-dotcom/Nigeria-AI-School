@@ -1,5 +1,6 @@
 import { Course } from '../types';
 import { supabase } from './supabase';
+import { getSignedCourseVideoUrl } from './secureVideo';
 
 type RawCourse = {
   id: string;
@@ -47,7 +48,7 @@ export async function fetchPaidCourses(): Promise<Course[]> {
     : { data: [] };
   const profilesById = new Map((profiles || []).map((profile: any) => [profile.id, profile]));
 
-  return (data || []).map((course: RawCourse) => {
+  return Promise.all((data || []).map(async (course: RawCourse) => {
     const instructor = profilesById.get(course.instructor_id);
     return {
       id: course.id,
@@ -59,7 +60,7 @@ export async function fetchPaidCourses(): Promise<Course[]> {
       price: Math.max(Number(course.price || 0), 15000),
       thumbnail: course.thumbnail || defaultThumbnail,
       duration: course.duration || 'Self-paced',
-      videoUrl: course.video_url || undefined,
+      videoUrl: await getSignedCourseVideoUrl(course.video_url),
       type: course.type || 'video',
       instructor: {
         name: `${instructor?.first_name || 'Expert'} ${instructor?.last_name || 'Instructor'}`.trim(),
@@ -67,5 +68,5 @@ export async function fetchPaidCourses(): Promise<Course[]> {
         avatar: instructor?.avatar_url || defaultAvatar,
       },
     };
-  });
+  }));
 }

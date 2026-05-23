@@ -8,9 +8,35 @@ import { cn } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
 import { Course } from '../types';
 import GlowCard from '../components/ui/spotlight-card';
+import SecureVideo from '../components/SecureVideo';
 import { imageFileToDataUrl, uploadProfileImage } from '../lib/profileImage';
 import { fetchPaidCourses } from '../lib/courses';
 import { ActiveSubscription, fetchActiveSubscription, monthlySubscriptionPrice, startMonthlySubscriptionCheckout } from '../lib/subscription';
+
+type CourseProgress = {
+  watched_seconds: number;
+  total_seconds: number;
+  progress_percent: number;
+  completed: boolean;
+};
+
+const emptyProgress: CourseProgress = {
+  watched_seconds: 0,
+  total_seconds: 0,
+  progress_percent: 0,
+  completed: false,
+};
+
+const isUuid = (value?: string) =>
+  Boolean(value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value));
+
+const formatWatchTime = (seconds = 0) => {
+  const totalSeconds = Math.max(0, Math.floor(seconds));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  return `${minutes}m`;
+};
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -35,15 +61,18 @@ export default function Dashboard() {
   const [verifyingPayment, setVerifyingPayment] = React.useState(false);
   const [courseLoadError, setCourseLoadError] = React.useState<string | null>(null);
   const [selectedCourse, setSelectedCourse] = React.useState<Course | null>(null);
+  const [progressByCourse, setProgressByCourse] = React.useState<Record<string, CourseProgress>>({});
   const [showCourseOverview, setShowCourseOverview] = React.useState(false);
   const [showLesson, setShowLesson] = React.useState(false);
-  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const cameraVideoRef = React.useRef<HTMLVideoElement>(null);
+  const lessonVideoRef = React.useRef<HTMLVideoElement>(null);
+  const lastProgressSaveRef = React.useRef<Record<string, number>>({});
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
 
   React.useEffect(() => {
-    if (!showCamera || !cameraStream || !videoRef.current) return;
+    if (!showCamera || !cameraStream || !cameraVideoRef.current) return;
 
-    const video = videoRef.current;
+    const video = cameraVideoRef.current;
     video.srcObject = cameraStream;
     video.play().catch(() => {
       window.showToast('Tap the video or allow camera autoplay to start the preview.', 'error');
@@ -89,7 +118,7 @@ export default function Dashboard() {
 
   const stopCamera = () => {
     cameraStream?.getTracks().forEach((track) => track.stop());
-    if (videoRef.current) videoRef.current.srcObject = null;
+    if (cameraVideoRef.current) cameraVideoRef.current.srcObject = null;
     setCameraStream(null);
     setCameraReady(false);
     setCameraError('');
@@ -97,17 +126,17 @@ export default function Dashboard() {
   };
 
   const takePhoto = () => {
-    if (!videoRef.current || !canvasRef.current) return;
-    if (!cameraReady || videoRef.current.videoWidth === 0 || videoRef.current.videoHeight === 0) {
+    if (!cameraVideoRef.current || !canvasRef.current) return;
+    if (!cameraReady || cameraVideoRef.current.videoWidth === 0 || cameraVideoRef.current.videoHeight === 0) {
       window.showToast('Camera is still starting. Please try again in a moment.', 'error');
       return;
     }
 
     const context = canvasRef.current.getContext('2d');
     if (context) {
-      canvasRef.current.width = videoRef.current.videoWidth;
-      canvasRef.current.height = videoRef.current.videoHeight;
-      context.drawImage(videoRef.current, 0, 0);
+      canvasRef.current.width = cameraVideoRef.current.videoWidth;
+      canvasRef.current.height = cameraVideoRef.current.videoHeight;
+      context.drawImage(cameraVideoRef.current, 0, 0);
       const dataUrl = canvasRef.current.toDataURL('image/png');
       setAvatarImage(dataUrl);
       stopCamera();
@@ -188,8 +217,29 @@ export default function Dashboard() {
         } else {
           setEnrolledCourseIds(new Set((enrollments || []).map((item) => item.course_id)));
         }
+
+        const { data: progressRows, error: progressError } = await supabase
+          .from('course_progress')
+          .select('course_id, watched_seconds, total_seconds, progress_percent, completed')
+          .eq('student_id', user.id);
+
+        if (progressError) {
+          console.warn('Could not load course progress:', progressError);
+          setProgressByCourse({});
+        } else {
+          setProgressByCourse(Object.fromEntries((progressRows || []).map((row: any) => [
+            row.course_id,
+            {
+              watched_seconds: Number(row.watched_seconds || 0),
+              total_seconds: Number(row.total_seconds || 0),
+              progress_percent: Number(row.progress_percent || 0),
+              completed: Boolean(row.completed),
+            },
+          ])));
+        }
       } else {
         setEnrolledCourseIds(new Set());
+        setProgressByCourse({});
       }
     } catch (error: any) {
       console.error('Error fetching courses:', error);
@@ -277,6 +327,70 @@ export default function Dashboard() {
   const enrolledCourses = hasActiveSubscription ? courses : courses.filter((course) => enrolledCourseIds.has(course.id));
   const availableCourses = hasActiveSubscription ? [] : courses.filter((course) => !enrolledCourseIds.has(course.id));
   const featuredPaidCourses = availableCourses.length > 0 ? availableCourses : courses;
+  const selectedProgress = selectedCourse ? (progressByCourse[selectedCourse.id] || emptyProgress) : emptyProgress;
+  const getCourseProgress = (courseId: string) => progressByCourse[courseId] || emptyProgress;
+
+  const saveCourseProgress = async (courseId: string, currentTime: number, duration: number, force = false) => {
+    if (!user?.id || !isUuid(courseId) || !Number.isFinite(duration) || duration <= 0) return;
+
+    const watchedSeconds = Math.min(Math.max(currentTime, 0), duration);
+    const totalSeconds = Math.max(duration, watchedSeconds);
+    const progressPercent = Math.min(100, Math.max(0, Math.round((watchedSeconds / totalSeconds) * 100)));
+    const completed = progressPercent >= 95 || watchedSeconds >= totalSeconds - 3;
+    const existing = progressByCourse[courseId] || emptyProgress;
+    const nextProgress: CourseProgress = {
+      watched_seconds: Math.max(watchedSeconds, existing.watched_seconds || 0),
+      total_seconds: Math.max(totalSeconds, existing.total_seconds || 0),
+      progress_percent: completed ? 100 : Math.max(progressPercent, existing.progress_percent || 0),
+      completed,
+    };
+
+    setProgressByCourse((current) => ({
+      ...current,
+      [courseId]: nextProgress,
+    }));
+
+    const now = Date.now();
+    const lastSaved = lastProgressSaveRef.current[courseId] || 0;
+    if (!force && now - lastSaved < 5000) return;
+    lastProgressSaveRef.current[courseId] = now;
+
+    const { error } = await supabase.from('course_progress').upsert({
+      student_id: user.id,
+      course_id: courseId,
+      watched_seconds: nextProgress.watched_seconds,
+      total_seconds: nextProgress.total_seconds,
+      progress_percent: nextProgress.progress_percent,
+      completed: nextProgress.completed,
+      last_watched_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'student_id,course_id' });
+
+    if (error) {
+      console.warn('Could not save course progress:', error);
+    }
+  };
+
+  const handleLessonLoadedMetadata = (event: React.SyntheticEvent<HTMLVideoElement>) => {
+    if (!selectedCourse) return;
+    const savedSeconds = progressByCourse[selectedCourse.id]?.watched_seconds || 0;
+    const video = event.currentTarget;
+    if (savedSeconds > 0 && savedSeconds < video.duration - 3) {
+      video.currentTime = savedSeconds;
+    }
+  };
+
+  const handleLessonTimeUpdate = (event: React.SyntheticEvent<HTMLVideoElement>) => {
+    if (!selectedCourse) return;
+    const video = event.currentTarget;
+    void saveCourseProgress(selectedCourse.id, video.currentTime, video.duration);
+  };
+
+  const handleLessonEnded = (event: React.SyntheticEvent<HTMLVideoElement>) => {
+    if (!selectedCourse) return;
+    const video = event.currentTarget;
+    void saveCourseProgress(selectedCourse.id, video.duration, video.duration, true);
+  };
 
   const handleSubscribe = async () => {
     const {
@@ -378,7 +492,7 @@ export default function Dashboard() {
                     <div key={course.id} className="bg-white rounded-2xl border border-outline-variant/10 overflow-hidden hover:border-secondary/40 transition-all">
                       <div className="h-32 bg-black overflow-hidden">
                         {course.videoUrl ? (
-                          <video src={course.videoUrl} className="w-full h-full object-cover opacity-80" muted preload="metadata" />
+                          <SecureVideo src={course.videoUrl} className="w-full h-full object-cover opacity-80" muted preload="metadata" />
                         ) : (
                           <img src={course.thumbnail} className="w-full h-full object-cover opacity-80" />
                         )}
@@ -430,7 +544,7 @@ export default function Dashboard() {
                     <GlowCard glowColor="blue" className="bg-white p-6 md:p-8 rounded-[2rem] border border-primary/20 flex flex-col md:flex-row items-center gap-8 h-auto shadow-xl shadow-primary/5">
                       <div className="w-full md:w-64 h-40 rounded-xl overflow-hidden relative shrink-0 bg-black">
                         {enrolledCourses[0].videoUrl ? (
-                          <video 
+                          <SecureVideo 
                             src={enrolledCourses[0].videoUrl} 
                             className="w-full h-full object-cover opacity-80" 
                             muted 
@@ -450,7 +564,9 @@ export default function Dashboard() {
                         </div>
                         <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm font-bold text-on-surface-variant">
                           <span className="flex items-center gap-1.5"><Clock size={16} /> {enrolledCourses[0].duration}</span>
-                          <span className="flex items-center gap-1.5 text-secondary">0% Complete</span>
+                          <span className="flex items-center gap-1.5 text-secondary">
+                            {getCourseProgress(enrolledCourses[0].id).progress_percent}% Complete
+                          </span>
                         </div>
                         <button 
                           onClick={() => {
@@ -489,7 +605,7 @@ export default function Dashboard() {
                         <div key={course.id} className="flex gap-4 p-4 bg-white rounded-2xl border border-outline-variant/10 hover:border-secondary/30 hover:bg-surface-container-lowest transition-all">
                           <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0">
                             {course.videoUrl ? (
-                              <video src={course.videoUrl} className="w-full h-full object-cover" muted />
+                              <SecureVideo src={course.videoUrl} className="w-full h-full object-cover" muted />
                             ) : (
                               <img src={course.thumbnail} className="w-full h-full object-cover" />
                             )}
@@ -538,7 +654,7 @@ export default function Dashboard() {
                       <div key={course.id} className="bg-white rounded-2xl border border-outline-variant/10 overflow-hidden hover:border-primary/30 transition-all group cursor-pointer" onClick={() => { setSelectedCourse(course as any); setShowCourseOverview(true); }}>
                         <div className="w-full h-32 bg-black relative overflow-hidden">
                           {course.videoUrl ? (
-                            <video src={course.videoUrl} className="w-full h-full object-cover opacity-80" muted />
+                            <SecureVideo src={course.videoUrl} className="w-full h-full object-cover opacity-80" muted />
                           ) : (
                             <img src={course.thumbnail} className="w-full h-full object-cover opacity-80" />
                           )}
@@ -549,7 +665,10 @@ export default function Dashboard() {
                         <div className="p-5 space-y-4">
                           <h4 className="font-bold text-primary text-sm line-clamp-1">{course.title}</h4>
                           <div className="h-1.5 bg-surface-container-low rounded-full overflow-hidden">
-                            <div className="h-full bg-secondary w-[0%] rounded-full" />
+                            <div
+                              className="h-full bg-secondary rounded-full"
+                              style={{ width: `${getCourseProgress(course.id).progress_percent}%` }}
+                            />
                           </div>
                           <button className="w-full py-2 bg-surface-container-low text-primary rounded-lg text-sm font-bold hover:bg-primary hover:text-white transition-colors">Start Learning</button>
                         </div>
@@ -600,10 +719,13 @@ export default function Dashboard() {
                       <div className="space-y-2">
                         <div className="flex justify-between text-xs font-bold text-primary">
                           <span>Progress</span>
-                          <span>0%</span>
+                          <span>{getCourseProgress(course.id).progress_percent}%</span>
                         </div>
                         <div className="h-2 bg-surface-container-low rounded-full overflow-hidden">
-                          <div className="h-full bg-primary w-[0%] rounded-full"></div>
+                          <div
+                            className="h-full bg-primary rounded-full"
+                            style={{ width: `${getCourseProgress(course.id).progress_percent}%` }}
+                          ></div>
                         </div>
                       </div>
                     </div>
@@ -677,7 +799,7 @@ export default function Dashboard() {
                 <GlowCard key={course.id} glowColor="blue" className="bg-white overflow-hidden border border-outline-variant/10 h-auto">
                   <div className="w-full h-48 bg-black overflow-hidden relative">
                     {course.videoUrl ? (
-                      <video 
+                      <SecureVideo 
                         src={course.videoUrl} 
                         className="w-full h-full object-cover opacity-80" 
                         muted 
@@ -863,7 +985,7 @@ export default function Dashboard() {
                         </div>
                       ) : (
                         <video
-                          ref={videoRef}
+                          ref={cameraVideoRef}
                           autoPlay
                           muted
                           playsInline
@@ -1075,15 +1197,18 @@ export default function Dashboard() {
                     <div className="flex justify-between items-center">
                       <div>
                         <p className="text-sm font-bold text-on-surface-variant mb-1">Overall Completion</p>
-                        <h4 className="text-2xl font-black text-primary">0% Complete</h4>
+                        <h4 className="text-2xl font-black text-primary">{selectedProgress.progress_percent}% Complete</h4>
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-bold text-on-surface-variant mb-1">Time Remaining</p>
-                        <h4 className="text-2xl font-black text-secondary">{selectedCourse.duration || '0 hrs'}</h4>
+                        <h4 className="text-2xl font-black text-secondary">{formatWatchTime(selectedProgress.watched_seconds)} watched</h4>
                       </div>
                     </div>
                     <div className="h-4 bg-surface-container-low rounded-full overflow-hidden p-1 border border-outline-variant/5">
-                      <div className="h-full bg-gradient-to-r from-primary via-secondary to-secondary-fixed-dim w-[0%] rounded-full shadow-[0_0_15px_rgba(0,108,73,0.3)]" />
+                      <div
+                        className="h-full bg-gradient-to-r from-primary via-secondary to-secondary-fixed-dim rounded-full shadow-[0_0_15px_rgba(0,108,73,0.3)]"
+                        style={{ width: `${selectedProgress.progress_percent}%` }}
+                      />
                     </div>
                   </div>
                 </section>
@@ -1125,7 +1250,7 @@ export default function Dashboard() {
                 >
                   <div className="relative aspect-video bg-black group cursor-pointer" onClick={() => { setShowCourseOverview(false); setShowLesson(true); }}>
                     {selectedCourse.videoUrl ? (
-                      <video src={selectedCourse.videoUrl} className="w-full h-full object-cover opacity-80" muted preload="metadata" />
+                      <SecureVideo src={selectedCourse.videoUrl} className="w-full h-full object-cover opacity-80" muted preload="metadata" />
                     ) : (
                       <img src={selectedCourse.thumbnail} className="w-full h-full object-cover opacity-70" />
                     )}
@@ -1193,8 +1318,8 @@ export default function Dashboard() {
 
         {/* Video Player Modal — opened from Course Overview */}
         {showLesson && selectedCourse && (
-          <div className="fixed inset-0 z-[110] bg-black/95 backdrop-blur-xl flex items-center justify-center p-0 md:p-10">
-            <div className="w-full max-w-6xl h-full max-h-[90vh] bg-white md:rounded-[2.5rem] overflow-hidden flex flex-col relative">
+          <div className="fixed inset-0 z-[110] bg-black/95 backdrop-blur-xl flex items-center justify-center p-0 md:p-6 lg:p-8">
+            <div className="w-full max-w-5xl h-full md:h-auto md:max-h-[92vh] bg-white md:rounded-[2.5rem] overflow-hidden flex flex-col relative">
               <button 
                 onClick={() => { setShowLesson(false); }}
                 className="absolute top-5 right-5 z-10 p-2.5 bg-black/20 hover:bg-black/40 rounded-full transition-colors text-white"
@@ -1203,13 +1328,18 @@ export default function Dashboard() {
               </button>
               
               {/* Video Player */}
-              <div className="aspect-video bg-black flex items-center justify-center shrink-0">
+              <div className="aspect-video md:aspect-auto md:h-[50vh] lg:h-[54vh] bg-black flex items-center justify-center shrink-0">
                 {selectedCourse.videoUrl ? (
-                  <video 
+                  <SecureVideo 
+                    ref={lessonVideoRef}
                     autoPlay 
-                    controlsList="nodownload nofullscreen" 
-                    disablePictureInPicture 
-                    onContextMenu={(e) => e.preventDefault()}
+                    controls
+                    onLoadedMetadata={handleLessonLoadedMetadata}
+                    onTimeUpdate={handleLessonTimeUpdate}
+                    onPause={(event) => {
+                      if (selectedCourse) void saveCourseProgress(selectedCourse.id, event.currentTarget.currentTime, event.currentTarget.duration, true);
+                    }}
+                    onEnded={handleLessonEnded}
                     className="w-full h-full"
                     src={selectedCourse.videoUrl}
                   />
@@ -1222,7 +1352,7 @@ export default function Dashboard() {
               </div>
               
               {/* Course Info under video */}
-              <div className="flex-grow p-6 md:p-10 space-y-5 overflow-y-auto">
+              <div className="flex-grow p-6 md:p-8 lg:p-10 space-y-5 overflow-y-auto">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <h2 className="text-xl md:text-2xl font-headline font-bold text-primary mb-1">{selectedCourse.title}</h2>
@@ -1245,11 +1375,11 @@ export default function Dashboard() {
                     </div>
                     <div className="p-4 bg-surface-container-low rounded-2xl">
                       <p className="text-xs font-black uppercase text-on-surface-variant mb-1">Time Spent</p>
-                      <p className="font-bold text-primary">2h 45m</p>
+                      <p className="font-bold text-primary">{formatWatchTime(selectedProgress.watched_seconds)}</p>
                     </div>
                     <div className="p-4 bg-surface-container-low rounded-2xl">
-                      <p className="text-xs font-black uppercase text-on-surface-variant mb-1">Next Lesson</p>
-                      <p className="font-bold text-secondary">Neural Networks</p>
+                      <p className="text-xs font-black uppercase text-on-surface-variant mb-1">Completion</p>
+                      <p className="font-bold text-secondary">{selectedProgress.completed ? 'Completed' : `${selectedProgress.progress_percent}% watched`}</p>
                     </div>
                   </div>
                 </div>

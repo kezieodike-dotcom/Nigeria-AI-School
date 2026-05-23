@@ -17,3 +17,15 @@ verify_jwt = false
 
 [functions.list-paid-courses]
 verify_jwt = false
+
+[functions.review-creator-application]
+verify_jwt = true
+
+[functions.admin-dashboard-data]
+verify_jwt = true
+
+[functions.create-payout-record]
+verify_jwt = true
+
+[functions.set-user-role]
+verify_jwt = true

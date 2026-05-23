@@ -6,8 +6,10 @@ import { COURSES } from '../constants';
 import { Course } from '../types';
 import { cn } from '../lib/utils';
 import { GlowCard } from '../components/ui/spotlight-card';
+import SecureVideo from '../components/SecureVideo';
 
 import { supabase } from '../lib/supabase';
+import { getSignedCourseVideoUrl } from '../lib/secureVideo';
 import { monthlySubscriptionPrice, startMonthlySubscriptionCheckout } from '../lib/subscription';
 
 export default function CourseDetail() {
@@ -102,7 +104,7 @@ export default function CourseDetail() {
         },
         thumbnail: courseData.thumbnail || 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800&q=80',
         duration: courseData.duration || '0 hrs',
-        videoUrl: courseData.video_url,
+        videoUrl: await getSignedCourseVideoUrl(courseData.video_url),
         type: courseData.type || 'video',
         instructor_id: courseData.instructor_id,
         students: courseData.students || 0,
@@ -390,12 +392,10 @@ export default function CourseDetail() {
             {/* Video Preview / Active Player */}
             {activeVideo ? (
               <div className="relative h-56 bg-black">
-                <video 
+                <SecureVideo 
                   src={activeVideo} 
                   autoPlay 
-                  controlsList="nodownload nofullscreen" 
-                  disablePictureInPicture 
-                  onContextMenu={(e) => e.preventDefault()}
+                  controls
                   className="w-full h-full object-contain"
                 />
               </div>

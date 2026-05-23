@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRight, Lock, Mail, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
-import { cn } from '../lib/utils';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -10,14 +9,12 @@ export default function Login() {
   const routeLocation = useLocation();
   const { user, profile } = useAuth();
   const searchParams = new URLSearchParams(routeLocation.search);
-  const requestedRole = searchParams.get('role');
-  const queryRole: 'student' | 'creator' = requestedRole === 'creator' ? 'creator' : 'student';
   const redirectTo = searchParams.get('redirect');
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'student' | 'creator'>(queryRole);
   const [loading, setLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -28,30 +25,27 @@ export default function Login() {
   };
 
   const getPostLoginPath = (profileRole?: string | null) => {
-    if (role === 'student') {
-      return getSafeRedirectPath() || '/dashboard';
-    }
-
     if (profileRole === 'admin') return '/admin';
     if (profileRole === 'creator') return '/creator-dashboard';
-    return '/dashboard';
+    return getSafeRedirectPath() || '/dashboard';
   };
 
   React.useEffect(() => {
     if (user && profile) {
       navigate(getPostLoginPath(profile.role), { replace: true });
     }
-  }, [user, profile, navigate, role, redirectTo, routeLocation.state]);
+  }, [user, profile, navigate, redirectTo, routeLocation.state]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    const normalizedEmail = email.trim().toLowerCase();
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: normalizedEmail,
+        password: password.trim(),
       });
 
       if (error) throw error;
@@ -71,10 +65,6 @@ export default function Login() {
           return;
         }
 
-        if (role === 'creator' && !['creator', 'admin'].includes(profileData?.role || '')) {
-          window.showToast?.('This account is a student account. Opening the student dashboard.', 'info');
-        }
-
         navigate(getPostLoginPath(profileData?.role), { replace: true });
       }
     } catch (err: any) {
@@ -82,6 +72,29 @@ export default function Login() {
       setError(err.message || 'Invalid login credentials.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) {
+      setError('Enter your email address first, then click Forgot Password.');
+      return;
+    }
+
+    setResetLoading(true);
+    setError(null);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+        redirectTo: `${window.location.origin}/login`,
+      });
+
+      if (error) throw error;
+      window.showToast?.('Password reset email sent. Check your inbox.', 'success');
+    } catch (err: any) {
+      setError(err.message || 'Unable to send password reset email.');
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -107,37 +120,14 @@ export default function Login() {
         )}
 
         <form className="space-y-6" onSubmit={handleSubmit}>
-          {/* Role Selection */}
-          <div className="flex bg-surface-container-low p-1 rounded-xl">
-            <button
-              type="button"
-              onClick={() => setRole('student')}
-              className={cn(
-                "flex-1 py-3 text-sm font-bold rounded-lg transition-all",
-                role === 'student' ? "bg-white text-primary shadow-sm" : "text-on-surface-variant hover:text-primary"
-              )}
-            >
-              Login as Student
-            </button>
-            <button
-              type="button"
-              onClick={() => setRole('creator')}
-              className={cn(
-                "flex-1 py-3 text-sm font-bold rounded-lg transition-all",
-                role === 'creator' ? "bg-white text-primary shadow-sm" : "text-on-surface-variant hover:text-primary"
-              )}
-            >
-              Login as Creator
-            </button>
-          </div>
-
           <div className="space-y-4">
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
               <input 
                 type="email" 
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value.trimStart())}
+                onBlur={(e) => setEmail(e.target.value.trim().toLowerCase())}
                 placeholder="Email Address" 
                 className="w-full pl-12 pr-4 py-4 rounded-xl bg-surface-container-lowest border border-outline-variant/20 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                 required
@@ -168,7 +158,14 @@ export default function Login() {
               <input type="checkbox" className="rounded border-outline-variant text-primary focus:ring-primary/20 w-4 h-4" />
               <span className="text-on-surface-variant font-medium">Remember me</span>
             </label>
-            <Link to="#" className="font-bold text-primary hover:underline underline-offset-4">Forgot Password?</Link>
+            <button
+              type="button"
+              onClick={handlePasswordReset}
+              disabled={resetLoading}
+              className="font-bold text-primary hover:underline underline-offset-4 disabled:opacity-60"
+            >
+              {resetLoading ? 'Sending...' : 'Forgot Password?'}
+            </button>
           </div>
 
           <button 
@@ -184,15 +181,6 @@ export default function Login() {
           Don't have an account? <Link to="/signup" className="text-secondary font-bold hover:underline underline-offset-4">Sign up here</Link>
         </p>
 
-        {/* Creator Callout */}
-        <div className="mt-8 p-6 bg-surface-container-low rounded-2xl border border-secondary/20 text-center relative overflow-hidden group hover:shadow-lg transition-all">
-          <div className="absolute inset-0 bg-gradient-to-r from-secondary/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <h3 className="font-headline font-bold text-primary mb-2 relative z-10">Are you an AI Expert?</h3>
-          <p className="text-sm text-on-surface-variant mb-4 relative z-10">Upload your videos, reach thousands of students, and make money.</p>
-          <Link to="/become-creator" className="inline-flex items-center gap-2 bg-secondary text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:scale-105 active:scale-95 transition-all shadow-md shadow-secondary/20 relative z-10">
-            Learn About Creators <ArrowRight size={16} />
-          </Link>
-        </div>
       </div>
     </div>
   );

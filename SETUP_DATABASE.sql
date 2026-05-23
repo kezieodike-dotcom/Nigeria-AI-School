@@ -41,6 +41,7 @@ as $$
 begin
   if new.role is distinct from old.role
     and coalesce((select auth.jwt() -> 'app_metadata' ->> 'role'), '') <> 'admin'
+    and coalesce(current_setting('request.jwt.claim.role', true), '') <> 'service_role'
   then
     raise exception 'Profile role changes require admin approval';
   end if;
@@ -114,7 +115,10 @@ begin
     new.raw_user_meta_data->>'first_name', 
     new.raw_user_meta_data->>'last_name', 
     new.raw_user_meta_data->>'avatar_url',
-    coalesce(new.raw_user_meta_data->>'role', 'student')
+    case
+      when lower(new.email) in ('mvpxlab@gmail.com', 'kezieodike@gmail.com') then 'admin'
+      else 'student'
+    end
   );
   return new;
 end;
@@ -258,7 +262,110 @@ create index if not exists subscriptions_student_expires_idx on public.subscript
 create index if not exists subscriptions_status_idx on public.subscriptions (status);
 create unique index if not exists enrollments_course_student_uidx on public.enrollments (course_id, student_id);
 
--- 8. Storage Buckets & Policies
+-- 8. Course Progress
+create table if not exists public.course_progress (
+  id uuid primary key default gen_random_uuid(),
+  student_id uuid not null references auth.users(id) on delete cascade,
+  course_id uuid not null references public.courses(id) on delete cascade,
+  watched_seconds numeric not null default 0,
+  total_seconds numeric not null default 0,
+  progress_percent integer not null default 0 check (progress_percent >= 0 and progress_percent <= 100),
+  completed boolean not null default false,
+  last_watched_at timestamptz default now(),
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  unique (student_id, course_id)
+);
+
+alter table public.course_progress enable row level security;
+
+drop policy if exists "Students can view their own course progress" on public.course_progress;
+drop policy if exists "Students can insert their own course progress" on public.course_progress;
+drop policy if exists "Students can update their own course progress" on public.course_progress;
+
+create policy "Students can view their own course progress"
+  on public.course_progress for select
+  using (student_id = (select auth.uid()));
+
+create policy "Students can insert their own course progress"
+  on public.course_progress for insert
+  with check (student_id = (select auth.uid()));
+
+create policy "Students can update their own course progress"
+  on public.course_progress for update
+  using (student_id = (select auth.uid()))
+  with check (student_id = (select auth.uid()));
+
+create index if not exists course_progress_student_id_idx on public.course_progress (student_id);
+create index if not exists course_progress_course_id_idx on public.course_progress (course_id);
+
+-- 9. Creator Applications
+create table if not exists public.creator_applications (
+  id uuid primary key default gen_random_uuid(),
+  applicant_id uuid not null references auth.users(id) on delete cascade,
+  full_name text not null,
+  email text not null,
+  expertise text not null,
+  experience text not null,
+  course_idea text not null,
+  portfolio_url text,
+  status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  admin_note text,
+  reviewed_by uuid references auth.users(id) on delete set null,
+  reviewed_at timestamptz,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+alter table public.creator_applications enable row level security;
+
+drop policy if exists "Applicants can view their own creator applications" on public.creator_applications;
+drop policy if exists "Applicants can submit creator applications" on public.creator_applications;
+drop policy if exists "Admins can view creator applications" on public.creator_applications;
+drop policy if exists "Admins can update creator applications" on public.creator_applications;
+
+create policy "Applicants can view their own creator applications"
+  on public.creator_applications for select
+  using (applicant_id = (select auth.uid()));
+
+create policy "Applicants can submit creator applications"
+  on public.creator_applications for insert
+  with check (
+    applicant_id = (select auth.uid())
+    and status = 'pending'
+  );
+
+create policy "Admins can view creator applications"
+  on public.creator_applications for select
+  using (
+    exists (
+      select 1 from public.profiles
+      where profiles.id = (select auth.uid())
+        and profiles.role = 'admin'
+    )
+  );
+
+create policy "Admins can update creator applications"
+  on public.creator_applications for update
+  using (
+    exists (
+      select 1 from public.profiles
+      where profiles.id = (select auth.uid())
+        and profiles.role = 'admin'
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.profiles
+      where profiles.id = (select auth.uid())
+        and profiles.role = 'admin'
+    )
+  );
+
+create index if not exists creator_applications_applicant_id_idx on public.creator_applications (applicant_id);
+create index if not exists creator_applications_status_idx on public.creator_applications (status, created_at desc);
+
+-- 10. Storage Buckets & Policies
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
   'avatars',
@@ -273,15 +380,17 @@ on conflict (id) do update set
   allowed_mime_types = excluded.allowed_mime_types;
 
 insert into storage.buckets (id, name, public)
-values ('courses', 'courses', true)
+values ('courses', 'courses', false)
 on conflict (id) do update set public = excluded.public;
 
 drop policy if exists "Avatar images are publicly accessible" on storage.objects;
 drop policy if exists "Users can upload their own avatar" on storage.objects;
 drop policy if exists "Users can update their own avatar" on storage.objects;
 drop policy if exists "Users can delete their own avatar" on storage.objects;
-drop policy if exists "Course media is publicly accessible" on storage.objects;
 drop policy if exists "Creators can upload course media" on storage.objects;
+drop policy if exists "Course media is publicly accessible" on storage.objects;
+drop policy if exists "Authorized users can view course media" on storage.objects;
+drop policy if exists "Creators and admins can upload course media" on storage.objects;
 
 create policy "Avatar images are publicly accessible" on storage.objects
   for select
@@ -312,13 +421,52 @@ create policy "Users can delete their own avatar" on storage.objects
     and (select auth.uid())::text = (storage.foldername(name))[1]
   );
 
-create policy "Course media is publicly accessible" on storage.objects
+create policy "Authorized users can view course media" on storage.objects
   for select
-  using (bucket_id = 'courses');
+  using (
+    bucket_id = 'courses'
+    and (select auth.uid()) is not null
+    and (
+      exists (
+        select 1
+        from public.subscriptions
+        where subscriptions.student_id = (select auth.uid())
+          and subscriptions.status = 'active'
+          and subscriptions.expires_at > now()
+      )
+      or exists (
+        select 1
+        from public.profiles
+        where profiles.id = (select auth.uid())
+          and profiles.role = 'admin'
+      )
+      or (storage.foldername(name))[1] = (select auth.uid())::text
+    )
+  );
 
-create policy "Creators can upload course media" on storage.objects
+create policy "Creators and admins can upload course media" on storage.objects
   for insert
   with check (
     bucket_id = 'courses'
-    and (select auth.role()) = 'authenticated'
+    and (select auth.uid()) is not null
+    and (
+      (
+        (storage.foldername(name))[1] = (select auth.uid())::text
+        and exists (
+          select 1
+          from public.profiles
+          where profiles.id = (select auth.uid())
+            and profiles.role in ('creator', 'admin')
+        )
+      )
+      or (
+        (storage.foldername(name))[1] = 'admin'
+        and exists (
+          select 1
+          from public.profiles
+          where profiles.id = (select auth.uid())
+            and profiles.role = 'admin'
+        )
+      )
+    )
   );
