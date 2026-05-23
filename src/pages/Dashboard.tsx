@@ -393,6 +393,11 @@ export default function Dashboard() {
   };
 
   const handleSubscribe = async () => {
+    if (hasActiveSubscription) {
+      window.showToast?.('Your subscription is already active.', 'success');
+      return;
+    }
+
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -1041,7 +1046,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex min-h-screen bg-surface-container-low">
+    <div className="flex min-h-screen min-w-0 bg-surface-container-low">
       {/* Sidebar - Desktop only */}
       <aside className="w-72 bg-white border-r border-outline-variant/10 hidden lg:flex flex-col p-8 sticky top-20 h-[calc(100vh-80px)]">
         <div className="space-y-12 flex-grow">
@@ -1077,11 +1082,11 @@ export default function Dashboard() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-grow p-4 sm:p-6 lg:p-12 space-y-8 lg:space-y-12 overflow-x-hidden pb-24 lg:pb-12">
+      <main className="min-w-0 flex-grow overflow-x-hidden p-3 pb-28 sm:p-6 lg:p-12 space-y-6 sm:space-y-8 lg:space-y-12 lg:pb-12">
         {/* Header */}
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-headline font-bold text-primary mb-1 md:mb-2">
+          <div className="min-w-0">
+            <h1 className="break-words text-xl sm:text-2xl md:text-3xl font-headline font-bold text-primary mb-1 md:mb-2">
               {activeTab === 'Overview' ? `Welcome back, ${userName} 👋` : activeTab}
             </h1>
             <p className="text-sm md:text-base text-on-surface-variant">
@@ -1193,13 +1198,13 @@ export default function Dashboard() {
                 {/* Progress Tracking */}
                 <section className="space-y-6">
                   <h2 className="font-headline font-bold text-2xl text-primary">Your Learning Progress</h2>
-                  <div className="bg-white p-8 rounded-3xl border border-outline-variant/10 space-y-6">
-                    <div className="flex justify-between items-center">
+                  <div className="bg-white p-4 sm:p-8 rounded-2xl sm:rounded-3xl border border-outline-variant/10 space-y-6">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
                       <div>
                         <p className="text-sm font-bold text-on-surface-variant mb-1">Overall Completion</p>
                         <h4 className="text-2xl font-black text-primary">{selectedProgress.progress_percent}% Complete</h4>
                       </div>
-                      <div className="text-right">
+                      <div className="sm:text-right">
                         <p className="text-sm font-bold text-on-surface-variant mb-1">Time Remaining</p>
                         <h4 className="text-2xl font-black text-secondary">{formatWatchTime(selectedProgress.watched_seconds)} watched</h4>
                       </div>
@@ -1215,7 +1220,7 @@ export default function Dashboard() {
 
                 {/* Curriculum / Content */}
                 <section className="space-y-6">
-                  <div className="flex justify-between items-end">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-end">
                     <h2 className="font-headline font-bold text-2xl text-primary">Course Curriculum</h2>
                     <span className="text-sm text-on-surface-variant font-bold">12 Lessons • {selectedCourse.duration || '12.5 hrs'}</span>
                   </div>
@@ -1228,13 +1233,13 @@ export default function Dashboard() {
                       { title: 'Module 4: Final Project & Deployment', duration: '2.5 hrs' }
                     ].map((mod, i) => (
                       <div key={i} className="bg-white border border-outline-variant/10 rounded-2xl overflow-hidden group">
-                        <div className="w-full px-6 py-5 flex items-center justify-between hover:bg-surface-container-lowest transition-colors cursor-pointer">
-                          <div className="flex items-center gap-4">
-                            <ChevronDown className="text-primary group-hover:translate-y-0.5 transition-transform" size={20} />
-                            <span className="font-bold text-primary text-lg">{mod.title}</span>
-                          </div>
-                          <span className="text-sm text-on-surface-variant font-bold">{mod.duration}</span>
-                        </div>
+                         <div className="w-full px-4 py-4 sm:px-6 sm:py-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between hover:bg-surface-container-lowest transition-colors cursor-pointer">
+                           <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+                             <ChevronDown className="text-primary group-hover:translate-y-0.5 transition-transform" size={20} />
+                             <span className="font-bold text-primary text-base sm:text-lg">{mod.title}</span>
+                           </div>
+                           <span className="text-sm text-on-surface-variant font-bold sm:shrink-0">{mod.duration}</span>
+                         </div>
                       </div>
                     ))}
                   </div>
@@ -1264,7 +1269,7 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  <div className="p-8 space-y-8">
+                  <div className="p-5 sm:p-8 space-y-6 sm:space-y-8">
                     <div className="space-y-4">
                       <button
                         onClick={() => {
@@ -1352,9 +1357,9 @@ export default function Dashboard() {
               </div>
               
               {/* Course Info under video */}
-              <div className="flex-grow p-6 md:p-8 lg:p-10 space-y-5 overflow-y-auto">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
+              <div className="flex-grow p-4 sm:p-6 md:p-8 lg:p-10 space-y-5 overflow-y-auto">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0">
                     <h2 className="text-xl md:text-2xl font-headline font-bold text-primary mb-1">{selectedCourse.title}</h2>
                     <p className="text-sm text-on-surface-variant">{selectedCourse.description || 'No description provided.'}</p>
                   </div>
@@ -1390,13 +1395,13 @@ export default function Dashboard() {
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-outline-variant/10 flex items-center justify-around px-2 py-2 lg:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-outline-variant/10 flex items-center gap-1 overflow-x-auto px-2 py-2 lg:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.06)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {sidebarItems.map((item) => (
           <button
             key={item.name}
             onClick={() => setActiveTab(item.name)}
             className={cn(
-              "flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all min-w-[60px]",
+              "flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all min-w-[68px]",
               activeTab === item.name
                 ? "text-primary"
                 : "text-on-surface-variant/60"
@@ -1408,7 +1413,7 @@ export default function Dashboard() {
         ))}
         <button
           onClick={handleLogout}
-          className="flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-red-400 min-w-[60px]"
+          className="flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-red-400 min-w-[68px]"
         >
           <LogOut size={20} strokeWidth={1.5} />
           <span className="text-[10px] font-medium">Logout</span>

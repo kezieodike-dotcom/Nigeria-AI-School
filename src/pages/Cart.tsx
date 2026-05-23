@@ -2,13 +2,30 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { CreditCard, Loader2, ShieldCheck } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { monthlySubscriptionPrice, startMonthlySubscriptionCheckout } from '../lib/subscription';
+import { ActiveSubscription, fetchActiveSubscription, monthlySubscriptionPrice, startMonthlySubscriptionCheckout } from '../lib/subscription';
 
 export default function Cart() {
   const navigate = useNavigate();
   const location = useLocation();
   const [checkoutLoading, setCheckoutLoading] = React.useState(false);
   const [verifying, setVerifying] = React.useState(false);
+  const [activeSubscription, setActiveSubscription] = React.useState<ActiveSubscription | null>(null);
+
+  React.useEffect(() => {
+    let cancelled = false;
+
+    const loadSubscription = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const subscription = await fetchActiveSubscription(user?.id);
+      if (!cancelled) setActiveSubscription(subscription);
+    };
+
+    loadSubscription();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   React.useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -27,6 +44,8 @@ export default function Cart() {
         if (error) throw error;
 
         if (!cancelled && data?.status === 'success') {
+          const { data: { user } } = await supabase.auth.getUser();
+          setActiveSubscription(await fetchActiveSubscription(user?.id));
           window.showToast?.('Subscription confirmed. You now have one month access to all courses.', 'success');
           navigate('/dashboard', { replace: true });
         } else if (!cancelled) {
@@ -49,6 +68,12 @@ export default function Cart() {
   }, [location.search, navigate]);
 
   const handleCheckout = async () => {
+    if (activeSubscription) {
+      window.showToast?.('Your subscription is already active.', 'success');
+      navigate('/dashboard');
+      return;
+    }
+
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -91,11 +116,11 @@ export default function Cart() {
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
           <button
             onClick={handleCheckout}
-            disabled={checkoutLoading || verifying}
+            disabled={Boolean(activeSubscription) || checkoutLoading || verifying}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-black text-white hover:opacity-90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {checkoutLoading ? <Loader2 size={18} className="animate-spin" /> : <CreditCard size={18} />}
-            Subscribe Now
+            {activeSubscription ? 'Subscription Active' : 'Subscribe Now'}
           </button>
           <Link to="/courses" className="inline-flex items-center justify-center rounded-xl border border-outline-variant/20 px-6 py-3 text-sm font-black text-primary hover:bg-surface-container-low">
             Browse Courses

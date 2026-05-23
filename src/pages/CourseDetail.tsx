@@ -10,7 +10,7 @@ import SecureVideo from '../components/SecureVideo';
 
 import { supabase } from '../lib/supabase';
 import { getSignedCourseVideoUrl } from '../lib/secureVideo';
-import { monthlySubscriptionPrice, startMonthlySubscriptionCheckout } from '../lib/subscription';
+import { ActiveSubscription, fetchActiveSubscription, monthlySubscriptionPrice, startMonthlySubscriptionCheckout } from '../lib/subscription';
 
 export default function CourseDetail() {
   const { id } = useParams<{ id: string }>();
@@ -20,6 +20,7 @@ export default function CourseDetail() {
   const [reviews, setReviews] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [checkoutLoading, setCheckoutLoading] = React.useState(false);
+  const [activeSubscription, setActiveSubscription] = React.useState<ActiveSubscription | null>(null);
   const [activeModule, setActiveModule] = React.useState<number | null>(0);
   const [activeVideo, setActiveVideo] = React.useState<string | null>(null);
 
@@ -89,6 +90,9 @@ export default function CourseDetail() {
         .single();
 
       if (courseError) throw courseError;
+      const { data: { user } } = await supabase.auth.getUser();
+      const subscription = await fetchActiveSubscription(user?.id);
+      setActiveSubscription(subscription);
       setCourse({
         id: courseData.id,
         title: courseData.title,
@@ -150,6 +154,12 @@ export default function CourseDetail() {
   const handleBuyNow = async () => {
     if (!course?.id) return;
 
+    if (activeSubscription) {
+      window.showToast?.('Your subscription is already active.', 'success');
+      navigate('/dashboard');
+      return;
+    }
+
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -197,6 +207,7 @@ export default function CourseDetail() {
     { title: 'Module 3: Deep Learning & Neural Networks', lessons: 6, duration: '4 hours of video' },
     { title: 'Module 4: Real-world AI Projects', lessons: 4, duration: '2.5 hours of video' },
   ];
+  const hasActiveSubscription = Boolean(activeSubscription);
 
   return (
     <div className="bg-surface pb-24">
@@ -442,10 +453,10 @@ export default function CourseDetail() {
                 </button>
                 <button
                   onClick={handleBuyNow}
-                  disabled={checkoutLoading}
+                  disabled={hasActiveSubscription || checkoutLoading}
                   className="w-full bg-white text-secondary border-2 border-secondary py-4 rounded-xl font-bold text-lg hover:bg-secondary hover:text-white transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {checkoutLoading ? 'Opening Checkout...' : 'Subscribe Now'}
+                  {hasActiveSubscription ? 'Subscription Active' : checkoutLoading ? 'Opening Checkout...' : 'Subscribe Now'}
                 </button>
               </div>
 

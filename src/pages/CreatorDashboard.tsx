@@ -847,9 +847,9 @@ export default function CreatorDashboard() {
   );
 
   return (
-    <div className="flex min-h-screen bg-surface-container-low">
+    <div className="flex min-h-screen min-w-0 bg-surface-container-low">
       {/* Sidebar - Desktop */}
-      <aside className="w-72 bg-white border-r border-outline-variant/10 hidden lg:flex flex-col p-6 sticky top-0 h-screen">
+      <aside className="w-72 bg-white border-r border-outline-variant/10 hidden lg:flex flex-col p-6 sticky top-0 h-[100dvh]">
         <div className="mb-8">
           <Link to="/" className="flex items-center gap-2">
             <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
@@ -931,7 +931,7 @@ export default function CreatorDashboard() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="absolute right-0 top-0 bottom-0 w-72 bg-white shadow-xl flex flex-col"
+              className="absolute right-0 top-0 bottom-0 w-[min(20rem,88vw)] bg-white shadow-xl flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-4 pt-16 flex-1 overflow-y-auto">
@@ -1009,7 +1009,7 @@ export default function CreatorDashboard() {
       </AnimatePresence>
 
       {/* Main Content */}
-      <main className="flex-grow p-3 sm:p-4 lg:p-8 space-y-4 sm:space-y-6 overflow-x-hidden pb-6 sm:pb-8 lg:pb-8 pt-14 sm:pt-16 lg:pt-8">
+      <main className="min-w-0 flex-grow p-3 sm:p-4 lg:p-8 space-y-4 sm:space-y-6 overflow-x-hidden pb-6 sm:pb-8 lg:pb-8 pt-14 sm:pt-16 lg:pt-8">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}

@@ -116,7 +116,7 @@ begin
     new.raw_user_meta_data->>'last_name', 
     new.raw_user_meta_data->>'avatar_url',
     case
-      when lower(new.email) in ('mvpxlab@gmail.com', 'kezieodike@gmail.com') then 'admin'
+      when lower(new.email) in ('mvpxlab@gmail.com', 'kezieodike@gmail.com', 'mvplabx@gmail.com') then 'admin'
       else 'student'
     end
   );

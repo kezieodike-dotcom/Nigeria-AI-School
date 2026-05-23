@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Search, User, LogOut, LayoutDashboard, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Menu, X, Search, User, LogOut, LayoutDashboard, ShieldCheck } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -16,8 +16,8 @@ export default function Layout({ children }: LayoutProps) {
   const navLinks = [
     { name: 'Courses', href: '/courses' },
     { name: 'How it Works', href: '/how-it-works' },
-    { name: 'Creators', href: '/become-creator' },
-    { name: 'About', href: '/about' },
+    { name: 'About Us', href: '/about' },
+    { name: 'Contact Us', href: '/contact-us' },
   ];
 
   const dashboardHref = profile?.role === 'admin'
@@ -33,27 +33,27 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden">
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-outline-variant">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <header className="sticky top-0 z-50 glass-effect border-b border-outline-variant/10">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center overflow-hidden border border-outline-variant p-1">
+            <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center overflow-hidden border border-primary/10 group-hover:border-primary/30 transition-colors p-1">
               <img src="/logo.png" alt="Nigeria AI School Logo" className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300" />
             </div>
-            <span className="text-base sm:text-lg font-semibold text-primary font-headline">
+            <span className="text-xl font-extrabold tracking-tighter text-primary font-headline">
               Nigeria AI School
             </span>
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden lg:flex items-center gap-7">
+          <nav className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
                 to={link.href}
                 className={cn(
-                  "text-sm font-medium transition-colors",
+                  "text-sm font-medium transition-colors hover:text-primary",
                   location.pathname === link.href
-                    ? "text-primary"
+                    ? "text-primary border-b-2 border-primary pb-1"
                     : "text-on-surface-variant hover:text-primary"
                 )}
               >
@@ -62,19 +62,19 @@ export default function Layout({ children }: LayoutProps) {
             ))}
           </nav>
 
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-4">
             {user ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 <Link 
                   to={dashboardHref} 
-                  className="flex items-center gap-2 text-sm font-medium text-primary border border-outline-variant px-4 py-2 rounded-full hover:bg-surface-container transition-colors"
+                  className="flex items-center gap-2 text-sm font-bold text-primary bg-primary/5 px-4 py-2 rounded-xl hover:bg-primary/10 transition-colors"
                 >
                   <LayoutDashboard size={18} />
                   {dashboardLabel}
                 </Link>
                 <button
                   onClick={() => signOut()}
-                  className="flex items-center gap-2 text-sm font-medium text-on-surface-variant hover:text-primary transition-colors"
+                  className="flex items-center gap-2 text-sm font-medium text-on-surface-variant hover:text-red-600 transition-colors"
                 >
                   <LogOut size={18} />
                   Sign Out
@@ -82,14 +82,14 @@ export default function Layout({ children }: LayoutProps) {
               </div>
             ) : (
               <>
-                <Link to="/login" className="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors px-3 py-2">
+                <Link to="/login" className="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">
                   Login
                 </Link>
                 <Link
                   to="/signup"
-                  className="bg-primary text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-primary-container active:scale-95 transition-all inline-flex items-center gap-2"
+                  className="bg-primary text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
                 >
-                  Get Started <ArrowRight size={16} />
+                  Sign Up
                 </Link>
               </>
             )}
@@ -98,7 +98,7 @@ export default function Layout({ children }: LayoutProps) {
           {/* Mobile Menu Toggle */}
           {!location.pathname.startsWith('/dashboard') && !location.pathname.startsWith('/creator-dashboard') && !location.pathname.startsWith('/admin') && (
             <button
-              className="md:hidden p-2 text-primary border border-outline-variant rounded-full"
+              className="md:hidden p-2 text-primary"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -108,7 +108,7 @@ export default function Layout({ children }: LayoutProps) {
 
         {/* Mobile Nav */}
         {isMenuOpen && !location.pathname.startsWith('/dashboard') && !location.pathname.startsWith('/creator-dashboard') && !location.pathname.startsWith('/admin') && (
-          <div className="md:hidden bg-white border-b border-outline-variant p-5 space-y-3">
+          <div className="md:hidden bg-white border-b border-outline-variant/10 p-6 space-y-4">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
@@ -125,7 +125,7 @@ export default function Layout({ children }: LayoutProps) {
                   <Link 
                     to={dashboardHref} 
                     onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center justify-center gap-2 py-3 bg-surface-container text-primary rounded-full font-medium border border-outline-variant"
+                    className="flex items-center justify-center gap-2 py-3 bg-primary/10 text-primary rounded-xl font-bold"
                   >
                     <LayoutDashboard size={20} />
                     {dashboardLabel}
@@ -135,7 +135,7 @@ export default function Layout({ children }: LayoutProps) {
                       signOut();
                       setIsMenuOpen(false);
                     }}
-                    className="flex items-center justify-center gap-2 py-3 text-on-surface-variant font-medium hover:text-primary"
+                    className="flex items-center justify-center gap-2 py-3 text-on-surface-variant font-medium hover:text-red-600"
                   >
                     <LogOut size={20} />
                     Sign Out
@@ -146,8 +146,8 @@ export default function Layout({ children }: LayoutProps) {
                   <Link to="/login" onClick={() => setIsMenuOpen(false)} className="text-center py-3 font-medium text-on-surface-variant">
                     Login
                   </Link>
-                  <Link to="/signup" onClick={() => setIsMenuOpen(false)} className="text-center py-3 bg-primary text-white rounded-full font-medium">
-                    Get Started
+                  <Link to="/signup" onClick={() => setIsMenuOpen(false)} className="text-center py-3 bg-primary text-white rounded-xl font-bold">
+                    Sign Up
                   </Link>
                 </>
               )}
@@ -160,14 +160,14 @@ export default function Layout({ children }: LayoutProps) {
         {children}
       </main>
 
-      <footer className="bg-white border-t border-outline-variant py-14">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
+      <footer className="bg-surface-container-low border-t border-outline-variant/10 py-16">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="space-y-6">
             <Link to="/" className="flex items-center gap-3 group inline-flex">
-              <div className="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center overflow-hidden border border-outline-variant p-1">
+              <div className="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center overflow-hidden border border-outline-variant/20 group-hover:border-primary/30 transition-colors p-1">
                 <img src="/logo.png" alt="Nigeria AI School Logo" className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300" />
               </div>
-              <span className="text-base font-semibold text-primary font-headline">Nigeria AI School</span>
+              <span className="text-lg font-bold text-primary font-headline">Nigeria AI School</span>
             </Link>
             <p className="text-sm text-on-surface-variant leading-relaxed">
               Empowering the next generation of African AI leaders with globally recognized skills and community support.
@@ -175,7 +175,7 @@ export default function Layout({ children }: LayoutProps) {
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold text-primary mb-5 font-headline">Learning</h4>
+            <h4 className="text-xs font-bold text-primary uppercase tracking-widest mb-6 font-headline">Learning</h4>
             <ul className="space-y-4">
               <li><Link to="/courses" className="text-sm text-on-surface-variant hover:text-primary transition-colors">AI & ML</Link></li>
               <li><Link to="/courses" className="text-sm text-on-surface-variant hover:text-primary transition-colors">Data Science</Link></li>
@@ -184,16 +184,16 @@ export default function Layout({ children }: LayoutProps) {
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold text-primary mb-5 font-headline">Opportunities</h4>
+            <h4 className="text-xs font-bold text-primary uppercase tracking-widest mb-6 font-headline">Opportunities</h4>
             <ul className="space-y-4">
               <li><Link to="#" className="text-sm text-on-surface-variant hover:text-primary transition-colors">Affiliate Program</Link></li>
-              <li><Link to="/become-creator" className="text-sm text-on-surface-variant hover:text-primary transition-colors">Creator Applications</Link></li>
+              <li><Link to="/become-creator" className="text-sm text-on-surface-variant hover:text-primary transition-colors">Become a Creator</Link></li>
               <li><Link to="#" className="text-sm text-on-surface-variant hover:text-primary transition-colors">Job Board</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold text-primary mb-5 font-headline">Legal</h4>
+            <h4 className="text-xs font-bold text-primary uppercase tracking-widest mb-6 font-headline">Legal</h4>
             <ul className="space-y-4">
               <li><Link to="#" className="text-sm text-on-surface-variant hover:text-primary transition-colors">Terms of Service</Link></li>
               <li><Link to="#" className="text-sm text-on-surface-variant hover:text-primary transition-colors">Privacy Policy</Link></li>
@@ -209,7 +209,7 @@ export default function Layout({ children }: LayoutProps) {
             )}
           </div>
         </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-12 pt-8 border-t border-outline-variant flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-outline-variant/10 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-xs text-on-surface-variant">
             © 2024 Nigeria AI School — Learn. Create. Earn.
           </p>
