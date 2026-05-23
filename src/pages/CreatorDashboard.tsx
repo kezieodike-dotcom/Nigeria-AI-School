@@ -132,7 +132,7 @@ export default function CreatorDashboard() {
     try {
       const { data, error } = await supabase
         .from('courses')
-        .select('id, title, thumbnail, price, students, rating, reviews_count, status, created_at, revenue, views, video_url, type')
+        .select('id, title, thumbnail, price, students, rating, status, created_at, revenue, views, video_url, type')
         .eq('instructor_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -145,7 +145,7 @@ export default function CreatorDashboard() {
         price: course.price || 0,
         students: course.students || 0,
         rating: course.rating || 0,
-        reviewsCount: course.reviews_count || 0,
+        reviewsCount: 0,
         status: course.status || 'published',
         createdAt: course.created_at,
         revenue: course.revenue || 0,

@@ -1,0 +1,164 @@
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+type CheckoutRequest = {
+  course_id?: string;
+  callback_url?: string;
+};
+
+function getBearerToken(req: Request) {
+  const authHeader = req.headers.get("Authorization") ?? "";
+  return authHeader.replace(/^Bearer\s+/i, "").trim();
+}
+
+function jsonResponse(body: Record<string, unknown>, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+function callbackUrlWithReference(baseUrl: string, reference: string) {
+  const url = new URL(baseUrl);
+  url.searchParams.set("payment_reference", reference);
+  return url.toString();
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  if (req.method !== "POST") {
+    return jsonResponse({ error: "Method not allowed" }, 405);
+  }
+
+  const paystackSecretKey = Deno.env.get("PAYSTACK_SECRET_KEY");
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+  if (!paystackSecretKey || !supabaseUrl || !serviceRoleKey) {
+    return jsonResponse({ error: "Payment service is not configured" }, 500);
+  }
+
+  const bearerToken = getBearerToken(req);
+  const supabase = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false },
+  });
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser(bearerToken);
+
+  if (userError || !user?.email) {
+    return jsonResponse({ error: "You must be signed in to buy a course" }, 401);
+  }
+
+  const body = (await req.json().catch(() => ({}))) as CheckoutRequest;
+  if (!body.course_id) {
+    return jsonResponse({ error: "course_id is required" }, 400);
+  }
+
+  const { data: course, error: courseError } = await supabase
+    .from("courses")
+    .select("id, title, price, instructor_id, status")
+    .eq("id", body.course_id)
+    .single();
+
+  if (courseError || !course) {
+    return jsonResponse({ error: "Course not found" }, 404);
+  }
+
+  if (course.status !== "published") {
+    return jsonResponse({ error: "This course is not available for purchase" }, 400);
+  }
+
+  if (course.instructor_id === user.id) {
+    return jsonResponse({ error: "You cannot buy your own course" }, 400);
+  }
+
+  const { data: existingEnrollment } = await supabase
+    .from("enrollments")
+    .select("id")
+    .eq("course_id", course.id)
+    .eq("student_id", user.id)
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (existingEnrollment) {
+    return jsonResponse({ error: "You are already enrolled in this course" }, 409);
+  }
+
+  const amount = Number(course.price);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return jsonResponse({ error: "Course price is invalid" }, 400);
+  }
+
+  const reference = `nais-${crypto.randomUUID().replaceAll("-", "")}`;
+  let callbackUrl: string;
+  try {
+    callbackUrl = callbackUrlWithReference(
+      body.callback_url ?? `${req.headers.get("Origin") ?? ""}/course/${course.id}`,
+      reference,
+    );
+  } catch {
+    return jsonResponse({ error: "callback_url is invalid" }, 400);
+  }
+
+  const initializeResponse = await fetch("https://api.paystack.co/transaction/initialize", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${paystackSecretKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email: user.email,
+      amount: Math.round(amount * 100),
+      currency: "NGN",
+      reference,
+      callback_url: callbackUrl,
+      metadata: {
+        course_id: course.id,
+        course_title: course.title,
+        student_id: user.id,
+        instructor_id: course.instructor_id,
+      },
+    }),
+  });
+
+  const initializePayload = await initializeResponse.json();
+  if (!initializeResponse.ok || !initializePayload.status) {
+    return jsonResponse(
+      { error: initializePayload.message ?? "Unable to initialize payment" },
+      502,
+    );
+  }
+
+  const { error: paymentError } = await supabase.from("payments").insert({
+    reference,
+    course_id: course.id,
+    student_id: user.id,
+    amount,
+    currency: "NGN",
+    status: "pending",
+    provider: "paystack",
+    authorization_url: initializePayload.data.authorization_url,
+    raw_response: initializePayload,
+  });
+
+  if (paymentError) {
+    return jsonResponse({ error: "Unable to record payment attempt" }, 500);
+  }
+
+  return jsonResponse({
+    authorization_url: initializePayload.data.authorization_url,
+    access_code: initializePayload.data.access_code,
+    reference,
+  });
+});

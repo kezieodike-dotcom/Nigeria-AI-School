@@ -34,6 +34,26 @@ create policy "Users can update their own profiles" on public.profiles
   using ((select auth.uid()) = id)
   with check ((select auth.uid()) = id);
 
+create or replace function public.prevent_non_admin_profile_role_change()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.role is distinct from old.role
+    and coalesce((select auth.jwt() -> 'app_metadata' ->> 'role'), '') <> 'admin'
+  then
+    raise exception 'Profile role changes require admin approval';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists prevent_non_admin_profile_role_change_on_profiles on public.profiles;
+create trigger prevent_non_admin_profile_role_change_on_profiles
+  before update on public.profiles
+  for each row execute function public.prevent_non_admin_profile_role_change();
+
 -- 2. Courses Table
 create table if not exists courses (
   id uuid default uuid_generate_v4() primary key,
@@ -144,7 +164,101 @@ create index if not exists courses_created_at_idx on courses (created_at desc);
 create index if not exists enrollments_student_id_idx on enrollments (student_id);
 create index if not exists enrollments_course_id_idx on enrollments (course_id);
 
--- 7. Storage Buckets & Policies
+-- 7. Payments and Monthly Subscriptions
+create table if not exists public.payments (
+  id uuid primary key default gen_random_uuid(),
+  reference text not null unique,
+  course_id uuid references public.courses(id) on delete set null,
+  student_id uuid not null references auth.users(id) on delete cascade,
+  amount numeric not null,
+  currency text not null default 'NGN',
+  status text not null default 'pending',
+  provider text not null default 'paystack',
+  provider_transaction_id text,
+  authorization_url text,
+  payment_type text not null default 'course' check (payment_type in ('course', 'cart', 'subscription')),
+  subscription_starts_at timestamptz,
+  subscription_expires_at timestamptz,
+  raw_response jsonb,
+  paid_at timestamptz,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+alter table public.payments enable row level security;
+
+drop policy if exists "Students can view their own payments" on public.payments;
+drop policy if exists "Creators can view payments for their courses" on public.payments;
+
+create policy "Students can view their own payments"
+  on public.payments for select
+  using (student_id = (select auth.uid()));
+
+create policy "Creators can view payments for their courses"
+  on public.payments for select
+  using (
+    exists (
+      select 1 from public.courses
+      where courses.id = payments.course_id
+        and courses.instructor_id = (select auth.uid())
+    )
+  );
+
+create table if not exists public.payment_events (
+  id uuid primary key default gen_random_uuid(),
+  provider text not null default 'paystack',
+  event_type text not null,
+  reference text,
+  payload jsonb not null,
+  created_at timestamptz default now()
+);
+
+alter table public.payment_events enable row level security;
+
+drop policy if exists "Admins can view payment events" on public.payment_events;
+create policy "Admins can view payment events"
+  on public.payment_events for select
+  using (coalesce((select auth.jwt() -> 'app_metadata' ->> 'role'), '') = 'admin');
+
+create table if not exists public.subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  student_id uuid not null references auth.users(id) on delete cascade,
+  payment_id uuid references public.payments(id) on delete set null,
+  reference text unique,
+  provider text not null default 'paystack',
+  amount numeric not null default 0,
+  currency text not null default 'NGN',
+  status text not null default 'active',
+  starts_at timestamptz not null default now(),
+  expires_at timestamptz not null,
+  raw_response jsonb,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+alter table public.subscriptions enable row level security;
+
+drop policy if exists "Students can view their own subscriptions" on public.subscriptions;
+drop policy if exists "Admins can view all subscriptions" on public.subscriptions;
+
+create policy "Students can view their own subscriptions"
+  on public.subscriptions for select
+  using (student_id = (select auth.uid()));
+
+create policy "Admins can view all subscriptions"
+  on public.subscriptions for select
+  using (coalesce((select auth.jwt() -> 'app_metadata' ->> 'role'), '') = 'admin');
+
+create index if not exists payments_reference_idx on public.payments (reference);
+create index if not exists payments_student_id_idx on public.payments (student_id);
+create index if not exists payments_course_id_idx on public.payments (course_id);
+create index if not exists payments_status_idx on public.payments (status);
+create index if not exists payment_events_reference_idx on public.payment_events (reference);
+create index if not exists subscriptions_student_expires_idx on public.subscriptions (student_id, expires_at desc);
+create index if not exists subscriptions_status_idx on public.subscriptions (status);
+create unique index if not exists enrollments_course_student_uidx on public.enrollments (course_id, student_id);
+
+-- 8. Storage Buckets & Policies
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
   'avatars',

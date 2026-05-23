@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Star, PlayCircle, Clock, Video, FileText, CheckCircle2, ChevronDown, Share2, ShieldCheck, GraduationCap, Users } from 'lucide-react';
 import { COURSES } from '../constants';
@@ -8,18 +8,63 @@ import { cn } from '../lib/utils';
 import { GlowCard } from '../components/ui/spotlight-card';
 
 import { supabase } from '../lib/supabase';
+import { monthlySubscriptionPrice, startMonthlySubscriptionCheckout } from '../lib/subscription';
 
 export default function CourseDetail() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [course, setCourse] = React.useState<Course & Record<string, any> | null>(null);
   const [reviews, setReviews] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [checkoutLoading, setCheckoutLoading] = React.useState(false);
   const [activeModule, setActiveModule] = React.useState<number | null>(0);
   const [activeVideo, setActiveVideo] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     fetchCourseData();
   }, [id]);
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const reference = params.get('payment_reference') || params.get('reference');
+    if (!reference || !id) return;
+
+    let cancelled = false;
+
+    const verifyPayment = async () => {
+      setCheckoutLoading(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('verify-paystack-payment', {
+          body: { reference },
+        });
+
+        if (error) throw error;
+
+        if (!cancelled && data?.status === 'success') {
+          window.showToast?.('Subscription confirmed. You now have one month access to all courses.', 'success');
+          fetchCourseData();
+        } else if (!cancelled) {
+          window.showToast?.('Payment was not confirmed. Please contact support if you were debited.', 'error');
+        }
+      } catch (error: any) {
+        if (!cancelled) {
+          window.showToast?.(error.message || 'Unable to verify payment right now.', 'error');
+        }
+      } finally {
+        if (!cancelled) {
+          setCheckoutLoading(false);
+          navigate(`/course/${id}`, { replace: true });
+        }
+      }
+    };
+
+    verifyPayment();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id, location.search, navigate]);
 
   const fetchCourseData = async () => {
     if (!id) return;
@@ -79,6 +124,47 @@ export default function CourseDetail() {
       setCourse(fallbackCourse || null);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const getCheckoutErrorMessage = async (error: any) => {
+    const response = error?.context || error?.response;
+    if (response?.json) {
+      try {
+        const body = await response.json();
+        if (body?.error) return body.error;
+      } catch {
+        // Fall through to default message.
+      }
+    }
+
+    if (/payment service is not configured/i.test(error?.message || '')) {
+      return 'Payment is not fully configured yet. Please set PAYSTACK_SECRET_KEY in Supabase Edge Function secrets.';
+    }
+
+    return error?.message || 'Unable to start checkout. Please try again.';
+  };
+
+  const handleBuyNow = async () => {
+    if (!course?.id) return;
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      navigate(`/login?redirect=/course/${course.id}`);
+      return;
+    }
+
+    setCheckoutLoading(true);
+    try {
+      const callbackUrl = `${window.location.origin}/course/${course.id}`;
+      window.location.href = await startMonthlySubscriptionCheckout(callbackUrl);
+    } catch (error: any) {
+      window.showToast?.(await getCheckoutErrorMessage(error), 'error');
+    } finally {
+      setCheckoutLoading(false);
     }
   };
 
@@ -338,7 +424,7 @@ export default function CourseDetail() {
             <div className="p-6 md:p-8">
               <div className="flex items-end gap-3 mb-6">
                 <span className="text-4xl font-black text-primary tracking-tight">
-                   ₦{course.price.toLocaleString()}
+                   ₦{monthlySubscriptionPrice.toLocaleString()}
                 </span>
                 {course.oldPrice && (
                   <span className="text-lg text-on-surface-variant line-through font-medium mb-1">
@@ -348,11 +434,18 @@ export default function CourseDetail() {
               </div>
 
               <div className="space-y-4 mb-8">
-                <button className="w-full bg-primary text-white py-4 rounded-xl font-bold text-lg hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-primary/20">
-                  Add to Cart
+                <button
+                  disabled
+                  className="w-full bg-primary text-white py-4 rounded-xl font-bold text-lg hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-primary/20 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  One month access to all courses
                 </button>
-                <button className="w-full bg-white text-secondary border-2 border-secondary py-4 rounded-xl font-bold text-lg hover:bg-secondary hover:text-white transition-all">
-                  Buy Now
+                <button
+                  onClick={handleBuyNow}
+                  disabled={checkoutLoading}
+                  className="w-full bg-white text-secondary border-2 border-secondary py-4 rounded-xl font-bold text-lg hover:bg-secondary hover:text-white transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {checkoutLoading ? 'Opening Checkout...' : 'Subscribe Now'}
                 </button>
               </div>
 
@@ -367,7 +460,7 @@ export default function CourseDetail() {
                 </div>
                 <div className="flex items-center gap-3">
                   <ShieldCheck size={18} />
-                  <span>Full lifetime access</span>
+                  <span>One month access to every course</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <GraduationCap size={18} />

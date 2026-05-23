@@ -16,6 +16,7 @@ import Signup from './pages/Signup';
 import CreatorDashboard from './pages/CreatorDashboard';
 import CreatorProfile from './pages/CreatorProfile';
 import AdminDashboard from './pages/AdminDashboard';
+import Cart from './pages/Cart';
 import { ToastContainer } from './components/Toast';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -35,6 +36,7 @@ export default function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/courses" element={<Courses />} />
+              <Route path="/cart" element={<Cart />} />
               <Route 
                 path="/dashboard" 
                 element={

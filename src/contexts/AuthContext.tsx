@@ -29,9 +29,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (error) throw error;
       setProfile(data);
+      return data;
     } catch (error) {
       console.error('Error fetching profile:', error);
       setProfile(null);
+      return null;
     }
   };
 
@@ -45,12 +47,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(session);
         const currentUser = session?.user ?? null;
         setUser(currentUser);
-        setLoading(false);
 
         if (currentUser) {
-          void fetchProfile(currentUser.id);
+          void fetchProfile(currentUser.id).finally(() => {
+            if (isMounted) setLoading(false);
+          });
         } else {
           setProfile(null);
+          setLoading(false);
         }
       })
       .catch((error) => {
@@ -69,12 +73,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       const currentUser = session?.user ?? null;
       setUser(currentUser);
-      setLoading(false);
 
       if (currentUser) {
-        void fetchProfile(currentUser.id);
+        setLoading(true);
+        void fetchProfile(currentUser.id).finally(() => {
+          if (isMounted) setLoading(false);
+        });
       } else {
         setProfile(null);
+        setLoading(false);
       }
     });
 

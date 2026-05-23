@@ -1,6 +1,6 @@
 import React from 'react'; 
 
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { motion } from 'motion/react';
 import { LayoutDashboard, BookOpen, CreditCard, Settings, LogOut, Search, Bell, Star, Clock, PlayCircle, ChevronRight, TrendingUp, Users, Share2, Rocket, User, Camera, UploadCloud, X, CheckCircle2, Heart, DollarSign, Link as LinkIcon, Copy, Twitter, ArrowUpRight, BarChart3, Edit3, ArrowRight, Trash2, Video, FileText, ChevronDown, ShieldCheck, GraduationCap, Loader2 } from 'lucide-react';
@@ -9,9 +9,12 @@ import { useAuth } from '../contexts/AuthContext';
 import { Course } from '../types';
 import GlowCard from '../components/ui/spotlight-card';
 import { imageFileToDataUrl, uploadProfileImage } from '../lib/profileImage';
+import { fetchPaidCourses } from '../lib/courses';
+import { ActiveSubscription, fetchActiveSubscription, monthlySubscriptionPrice, startMonthlySubscriptionCheckout } from '../lib/subscription';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, profile, refreshProfile, signOut } = useAuth();
   const [activeTab, setActiveTab] = React.useState('Overview');
   const [userName, setUserName] = React.useState('Student');
@@ -25,7 +28,12 @@ export default function Dashboard() {
   const [emailInput, setEmailInput] = React.useState('');
   const [isUpdating, setIsUpdating] = React.useState(false);
   const [courses, setCourses] = React.useState<Course[]>([]);
+  const [enrolledCourseIds, setEnrolledCourseIds] = React.useState<Set<string>>(new Set());
+  const [activeSubscription, setActiveSubscription] = React.useState<ActiveSubscription | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const [subscriptionCheckoutLoading, setSubscriptionCheckoutLoading] = React.useState(false);
+  const [verifyingPayment, setVerifyingPayment] = React.useState(false);
+  const [courseLoadError, setCourseLoadError] = React.useState<string | null>(null);
   const [selectedCourse, setSelectedCourse] = React.useState<Course | null>(null);
   const [showCourseOverview, setShowCourseOverview] = React.useState(false);
   const [showLesson, setShowLesson] = React.useState(false);
@@ -113,44 +121,79 @@ export default function Dashboard() {
 
   React.useEffect(() => {
     fetchCourses();
-  }, []);
+  }, [user?.id]);
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const reference = params.get('payment_reference') || params.get('reference');
+    if (!reference) return;
+
+    let cancelled = false;
+
+    const verifyPayment = async () => {
+      setVerifyingPayment(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('verify-paystack-payment', {
+          body: { reference },
+        });
+
+        if (error) throw error;
+
+        if (!cancelled && data?.status === 'success') {
+          const subscription = await fetchActiveSubscription(user?.id);
+          setActiveSubscription(subscription);
+          window.showToast?.('Subscription confirmed. You now have one month access to all courses.', 'success');
+          fetchCourses();
+        } else if (!cancelled) {
+          window.showToast?.('Payment was not confirmed. Please contact support if you were debited.', 'error');
+        }
+      } catch (error: any) {
+        if (!cancelled) {
+          window.showToast?.(error.message || 'Unable to verify payment right now.', 'error');
+        }
+      } finally {
+        if (!cancelled) {
+          setVerifyingPayment(false);
+          navigate('/dashboard', { replace: true });
+        }
+      }
+    };
+
+    verifyPayment();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [location.search, navigate, user?.id]);
 
   const fetchCourses = async () => {
     setLoading(true);
+    setCourseLoadError(null);
     try {
-      const { data, error } = await supabase
-        .from('courses')
-        .select('id, title, description, category, rating, reviews_count, price, thumbnail, video_url, type, duration')
-        .order('created_at', { ascending: false });
+      const paidCourses = await fetchPaidCourses();
+      setCourses(paidCourses);
+      const subscription = await fetchActiveSubscription(user?.id);
+      setActiveSubscription(subscription);
 
-      if (error) throw error;
-      
-      const formattedCourses = (data || []).map(course => ({
-        id: course.id,
-        title: course.title,
-        description: course.description || '',
-        category: course.category || 'AI & ML',
-        rating: course.rating || 0,
-        reviewsCount: course.reviews_count || 0,
-        price: course.price || 0,
-        thumbnail: course.thumbnail || 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800&q=80',
-        duration: course.duration || '0 hrs',
-        videoUrl: course.video_url,
-        type: course.type || 'video',
-        instructor: {
-          name: 'Expert Instructor',
-          role: 'AI Specialist',
-          avatar: 'https://ui-avatars.com/api/?name=AI&background=00154d&color=fff'
+      if (user?.id) {
+        const { data: enrollments, error: enrollmentError } = await supabase
+          .from('enrollments')
+          .select('course_id')
+          .eq('student_id', user.id)
+          .eq('status', 'active');
+
+        if (enrollmentError) {
+          console.warn('Could not load enrollments:', enrollmentError);
+          setEnrolledCourseIds(new Set());
+        } else {
+          setEnrolledCourseIds(new Set((enrollments || []).map((item) => item.course_id)));
         }
-      }));
-
-      if (formattedCourses.length > 0) {
-        setCourses(formattedCourses);
       } else {
-        setCourses([]);
+        setEnrolledCourseIds(new Set());
       }
     } catch (error: any) {
       console.error('Error fetching courses:', error);
+      setCourseLoadError(error.message || 'Unable to load courses.');
       setCourses([]);
     } finally {
       setLoading(false);
@@ -221,49 +264,80 @@ export default function Dashboard() {
     }
   };
 
-  const handleUpgradeToCreator = async () => {
-    setIsUpdating(true);
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ role: 'creator' })
-        .eq('id', user?.id);
-
-      if (error) throw error;
-      
-      // Also update metadata for convenience, but the profile table is the truth
-      await supabase.auth.updateUser({
-        data: { role: 'creator' }
-      });
-
-      await refreshProfile();
-      window.showToast("Successfully upgraded to Creator Account!");
-      navigate('/creator-dashboard');
-    } catch (error: any) {
-      window.showToast(error.message, "error");
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
   const sidebarItems = [
     { name: 'Overview', icon: LayoutDashboard },
     { name: 'My Courses', icon: BookOpen },
-    { name: 'Explore', icon: Search },
+    { name: 'Subscription', icon: CreditCard },
     { name: 'My Links', icon: LinkIcon },
     { name: 'Settings', icon: Settings },
     { name: 'Profile', icon: User },
   ];
+
+  const hasActiveSubscription = Boolean(activeSubscription);
+  const enrolledCourses = hasActiveSubscription ? courses : courses.filter((course) => enrolledCourseIds.has(course.id));
+  const availableCourses = hasActiveSubscription ? [] : courses.filter((course) => !enrolledCourseIds.has(course.id));
+  const featuredPaidCourses = availableCourses.length > 0 ? availableCourses : courses;
+
+  const handleSubscribe = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      navigate('/login?redirect=/dashboard');
+      return;
+    }
+
+    setSubscriptionCheckoutLoading(true);
+    try {
+      const authorizationUrl = await startMonthlySubscriptionCheckout(`${window.location.origin}/dashboard`);
+      window.location.href = authorizationUrl;
+    } catch (error: any) {
+      window.showToast?.(error.message || 'Unable to start subscription checkout. Please try again.', 'error');
+    } finally {
+      setSubscriptionCheckoutLoading(false);
+    }
+  };
 
   const renderContent = () => {
     switch (activeTab) {
       case 'Overview':
         return (
           <div className="space-y-12">
+            {verifyingPayment && (
+              <div className="rounded-2xl border border-outline-variant/20 bg-white p-5 text-sm font-bold text-primary">
+                Verifying payment...
+              </div>
+            )}
+
+            <section className="rounded-[2rem] border border-primary/15 bg-white p-6 md:p-8 shadow-sm">
+              <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                <div className="space-y-2">
+                  <p className="text-xs font-black uppercase tracking-widest text-secondary">Monthly All-Access</p>
+                  <h2 className="font-headline text-2xl font-black text-primary">
+                    {hasActiveSubscription ? 'Your subscription is active' : 'Subscribe once and learn everything'}
+                  </h2>
+                  <p className="max-w-2xl text-sm leading-6 text-on-surface-variant">
+                    {hasActiveSubscription
+                      ? `You have access to every course until ${new Date(activeSubscription!.expires_at).toLocaleDateString()}.`
+                      : `Pay ₦${monthlySubscriptionPrice.toLocaleString()} for one month of access to all published courses on Nigeria AI School.`}
+                  </p>
+                </div>
+                <button
+                  onClick={handleSubscribe}
+                  disabled={hasActiveSubscription || subscriptionCheckoutLoading}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-black text-white hover:opacity-90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {subscriptionCheckoutLoading ? <Loader2 size={18} className="animate-spin" /> : <CreditCard size={18} />}
+                  {hasActiveSubscription ? 'Active Access' : `Subscribe ₦${monthlySubscriptionPrice.toLocaleString()}`}
+                </button>
+              </div>
+            </section>
+
             {/* Quick Stats */}
             <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
-                { label: 'Courses Enrolled', value: courses.length.toString(), icon: BookOpen, glow: 'blue' as const },
+                { label: 'Courses Enrolled', value: enrolledCourses.length.toString(), icon: BookOpen, glow: 'blue' as const },
                 { label: 'Courses Completed', value: '0', icon: CheckCircle2, glow: 'green' as const },
                 { label: 'Learning Hours', value: '0', icon: Clock, glow: 'purple' as const },
               ].map((stat, i) => (
@@ -284,23 +358,86 @@ export default function Dashboard() {
               ))}
             </section>
 
+            <section className="space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <h2 className="text-xl font-headline font-bold text-primary">Available Courses</h2>
+                  <p className="text-sm text-on-surface-variant">One monthly subscription unlocks every creator-uploaded course.</p>
+                </div>
+                <button
+                  onClick={() => setActiveTab('Subscription')}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-black text-white hover:opacity-90 active:scale-95 transition-all"
+                >
+                  <CreditCard size={18} /> View Subscription
+                </button>
+              </div>
+
+              {featuredPaidCourses.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                  {featuredPaidCourses.slice(0, 6).map((course) => (
+                    <div key={course.id} className="bg-white rounded-2xl border border-outline-variant/10 overflow-hidden hover:border-secondary/40 transition-all">
+                      <div className="h-32 bg-black overflow-hidden">
+                        {course.videoUrl ? (
+                          <video src={course.videoUrl} className="w-full h-full object-cover opacity-80" muted preload="metadata" />
+                        ) : (
+                          <img src={course.thumbnail} className="w-full h-full object-cover opacity-80" />
+                        )}
+                      </div>
+                      <div className="p-5 space-y-3">
+                        <h3 className="font-headline font-bold text-primary line-clamp-2">{course.title}</h3>
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-sm font-black text-secondary">₦{course.price.toLocaleString()}</span>
+                          <button
+                            onClick={hasActiveSubscription ? () => {
+                              setSelectedCourse(course as any);
+                              setShowCourseOverview(true);
+                            } : handleSubscribe}
+                            disabled={subscriptionCheckoutLoading}
+                            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-black text-white hover:opacity-90 active:scale-95 transition-all"
+                          >
+                            {hasActiveSubscription ? 'Start Course' : 'Subscribe'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {!loading && featuredPaidCourses.length === 0 && (
+                <div className="rounded-[2rem] border border-dashed border-outline-variant/20 bg-white p-8 text-center">
+                  <BookOpen className="mx-auto mb-4 text-on-surface-variant/40" size={42} />
+                  <h3 className="font-headline text-xl font-bold text-primary">No courses are visible yet</h3>
+                  <p className="mt-2 text-sm text-on-surface-variant">
+                    {courseLoadError || 'Published creator courses will appear here automatically.'}
+                  </p>
+                </div>
+              )}
+
+              {loading && (
+                <div className="rounded-[2rem] border border-outline-variant/10 bg-white p-8 text-center text-sm font-bold text-on-surface-variant">
+                  Loading courses...
+                </div>
+              )}
+            </section>
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
               <div className="lg:col-span-2 space-y-12">
                 {/* Continue Learning - Most Important */}
                 <div className="space-y-6">
                   <h2 className="text-xl font-headline font-bold text-primary">Continue Learning</h2>
-                  {courses.length > 0 ? (
+                  {enrolledCourses.length > 0 ? (
                     <GlowCard glowColor="blue" className="bg-white p-6 md:p-8 rounded-[2rem] border border-primary/20 flex flex-col md:flex-row items-center gap-8 h-auto shadow-xl shadow-primary/5">
                       <div className="w-full md:w-64 h-40 rounded-xl overflow-hidden relative shrink-0 bg-black">
-                        {courses[0].videoUrl ? (
+                        {enrolledCourses[0].videoUrl ? (
                           <video 
-                            src={courses[0].videoUrl} 
+                            src={enrolledCourses[0].videoUrl} 
                             className="w-full h-full object-cover opacity-80" 
                             muted 
                             preload="metadata"
                           />
                         ) : (
-                          <img src={courses[0].thumbnail} className="w-full h-full object-cover opacity-80" />
+                          <img src={enrolledCourses[0].thumbnail} className="w-full h-full object-cover opacity-80" />
                         )}
                         <div className="absolute inset-0 flex items-center justify-center">
                           <PlayCircle size={40} className="text-white opacity-40 group-hover:opacity-100 transition-opacity" />
@@ -309,15 +446,15 @@ export default function Dashboard() {
                       <div className="flex-grow space-y-4 text-center md:text-left">
                         <div className="space-y-1">
                           <p className="text-xs font-black text-secondary uppercase tracking-widest">Next Lesson: Getting Started</p>
-                          <h3 className="text-2xl font-headline font-black text-primary leading-tight">{courses[0].title}</h3>
+                          <h3 className="text-2xl font-headline font-black text-primary leading-tight">{enrolledCourses[0].title}</h3>
                         </div>
                         <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm font-bold text-on-surface-variant">
-                          <span className="flex items-center gap-1.5"><Clock size={16} /> {courses[0].duration}</span>
+                          <span className="flex items-center gap-1.5"><Clock size={16} /> {enrolledCourses[0].duration}</span>
                           <span className="flex items-center gap-1.5 text-secondary">0% Complete</span>
                         </div>
                         <button 
                           onClick={() => {
-                            setSelectedCourse(courses[0] as any);
+                            setSelectedCourse(enrolledCourses[0] as any);
                             setShowCourseOverview(true);
                           }}
                           className="px-8 py-3.5 bg-primary text-white rounded-xl font-black text-sm flex items-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-primary/20 mx-auto md:mx-0"
@@ -335,18 +472,21 @@ export default function Dashboard() {
                         <p className="font-bold text-primary">No courses enrolled yet</p>
                         <p className="text-sm text-on-surface-variant">Explore our AI courses to start learning.</p>
                       </div>
-                      <button onClick={() => setActiveTab('Explore')} className="text-sm font-bold text-primary hover:underline">Explore Courses</button>
+                      <button onClick={() => setActiveTab('Subscription')} className="text-sm font-bold text-primary hover:underline">Subscribe</button>
                     </div>
                   )}
                 </div>
 
                 {/* Recommended Courses - Directly under Continue Learning */}
-                {courses.length > 1 && (
+                {featuredPaidCourses.length > 0 && (
                   <div className="space-y-6">
-                    <h2 className="text-xl font-headline font-bold text-primary">Recommended for You</h2>
+                    <div className="flex items-center justify-between gap-4">
+                      <h2 className="text-xl font-headline font-bold text-primary">Courses Included</h2>
+                      <button onClick={() => setActiveTab('Subscription')} className="text-sm font-bold text-secondary hover:underline">View plan</button>
+                    </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                      {courses.slice(1, 3).map(course => (
-                        <div key={course.id} className="flex gap-4 p-4 bg-white rounded-2xl border border-outline-variant/10 hover:border-secondary/30 hover:bg-surface-container-lowest transition-all cursor-pointer" onClick={() => { setSelectedCourse(course as any); setShowCourseOverview(true); }}>
+                      {featuredPaidCourses.slice(0, 4).map(course => (
+                        <div key={course.id} className="flex gap-4 p-4 bg-white rounded-2xl border border-outline-variant/10 hover:border-secondary/30 hover:bg-surface-container-lowest transition-all">
                           <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0">
                             {course.videoUrl ? (
                               <video src={course.videoUrl} className="w-full h-full object-cover" muted />
@@ -357,10 +497,33 @@ export default function Dashboard() {
                           <div className="flex flex-col justify-center">
                             <h4 className="text-sm font-bold text-primary line-clamp-2 leading-tight">{course.title}</h4>
                             <span className="text-[10px] font-black text-secondary uppercase tracking-widest mt-1">₦{course.price.toLocaleString()}</span>
+                            <button
+                              onClick={hasActiveSubscription ? () => {
+                                setSelectedCourse(course as any);
+                                setShowCourseOverview(true);
+                              } : handleSubscribe}
+                              className="mt-2 inline-flex items-center gap-1 text-xs font-black text-primary hover:text-secondary transition-colors"
+                            >
+                              {hasActiveSubscription ? 'Start Course' : 'Subscribe'} <ArrowRight size={13} />
+                            </button>
                           </div>
                         </div>
                       ))}
                     </div>
+                  </div>
+                )}
+                {!loading && featuredPaidCourses.length === 0 && (
+                  <div className="rounded-[2rem] border border-dashed border-outline-variant/20 bg-white p-8 text-center">
+                    <BookOpen className="mx-auto mb-4 text-on-surface-variant/40" size={42} />
+                    <h3 className="font-headline text-xl font-bold text-primary">No courses are visible yet</h3>
+                    <p className="mt-2 text-sm text-on-surface-variant">
+                      {courseLoadError || 'Published creator courses will appear here automatically.'}
+                    </p>
+                  </div>
+                )}
+                {loading && (
+                  <div className="rounded-[2rem] border border-outline-variant/10 bg-white p-8 text-center text-sm font-bold text-on-surface-variant">
+                    Loading courses...
                   </div>
                 )}
 
@@ -371,7 +534,7 @@ export default function Dashboard() {
                     <button onClick={() => setActiveTab('My Courses')} className="text-sm font-bold text-secondary hover:underline">View All</button>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    {courses.slice(0, 2).map(course => (
+                    {enrolledCourses.slice(0, 2).map(course => (
                       <div key={course.id} className="bg-white rounded-2xl border border-outline-variant/10 overflow-hidden hover:border-primary/30 transition-all group cursor-pointer" onClick={() => { setSelectedCourse(course as any); setShowCourseOverview(true); }}>
                         <div className="w-full h-32 bg-black relative overflow-hidden">
                           {course.videoUrl ? (
@@ -392,9 +555,10 @@ export default function Dashboard() {
                         </div>
                       </div>
                     ))}
-                    {courses.length === 0 && (
+                    {enrolledCourses.length === 0 && (
                       <div className="col-span-full py-12 text-center border border-outline-variant/10 border-dashed rounded-2xl">
                          <p className="text-sm text-on-surface-variant">No enrolled courses yet.</p>
+                         <button onClick={() => setActiveTab('Subscription')} className="mt-3 text-sm font-bold text-secondary hover:underline">Subscribe to start learning</button>
                       </div>
                     )}
                   </div>
@@ -411,9 +575,17 @@ export default function Dashboard() {
       case 'My Courses':
         return (
           <div className="space-y-8">
-            <h2 className="text-2xl font-headline font-bold text-primary">Enrolled Courses</h2>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <h2 className="text-2xl font-headline font-bold text-primary">Enrolled Courses</h2>
+              <button
+                onClick={() => setActiveTab('Subscription')}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-black text-white hover:opacity-90 active:scale-95 transition-all"
+              >
+                <CreditCard size={18} /> Subscription
+              </button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {courses.map((course) => (
+              {enrolledCourses.map((course) => (
                 <GlowCard key={course.id} glowColor="blue" className="bg-white overflow-hidden flex flex-col h-auto group border border-outline-variant/10 hover:border-primary/30">
                   <div className="relative h-48 overflow-hidden">
                     <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
@@ -447,27 +619,61 @@ export default function Dashboard() {
                   </div>
                 </GlowCard>
               ))}
+              {enrolledCourses.length === 0 && (
+                <div className="md:col-span-2 lg:col-span-3 rounded-3xl border border-dashed border-outline-variant/20 bg-white p-10 text-center">
+                  <BookOpen className="mx-auto mb-4 text-on-surface-variant/40" size={42} />
+                  <h3 className="font-headline text-xl font-bold text-primary">No course access yet</h3>
+                  <p className="mt-2 text-sm text-on-surface-variant">Subscribe once and every course will appear here for one month.</p>
+                  <button
+                    onClick={() => setActiveTab('Subscription')}
+                    className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-black text-white hover:opacity-90 active:scale-95 transition-all"
+                  >
+                    <CreditCard size={18} /> Subscribe
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         );
 
-      case 'Explore':
+      case 'Subscription':
         return (
           <div className="space-y-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <h2 className="text-2xl font-headline font-bold text-primary">Explore Courses</h2>
+              <h2 className="text-2xl font-headline font-bold text-primary">Monthly Subscription</h2>
               <div className="relative w-full md:w-96">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
                 <input type="text" placeholder="Search for AI courses..." className="w-full pl-12 pr-4 py-3 bg-white rounded-2xl border border-outline-variant/20 focus:border-primary focus:ring-2 focus:ring-primary/20" />
               </div>
             </div>
+            <div className="rounded-[2rem] border border-primary/15 bg-white p-6 md:p-8">
+              <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-widest text-secondary">All courses, one payment</p>
+                  <h3 className="mt-2 font-headline text-2xl font-black text-primary">
+                    ₦{monthlySubscriptionPrice.toLocaleString()} / month
+                  </h3>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-on-surface-variant">
+                    Your subscription unlocks every published course for one month. When it expires, renew to keep access.
+                  </p>
+                </div>
+                <button
+                  onClick={handleSubscribe}
+                  disabled={hasActiveSubscription || subscriptionCheckoutLoading}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-black text-white hover:opacity-90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {subscriptionCheckoutLoading ? <Loader2 size={18} className="animate-spin" /> : <CreditCard size={18} />}
+                  {hasActiveSubscription ? 'Subscription Active' : 'Subscribe Now'}
+                </button>
+              </div>
+            </div>
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-              {['All', 'AI Development', 'Data Science', 'Generative AI', 'Web Development'].map(filter => (
+              {['All Courses', 'AI Development', 'Data Science', 'Generative AI', 'Web Development'].map(filter => (
                 <button key={filter} className="px-6 py-2 bg-white border border-outline-variant/20 rounded-full text-sm font-bold text-on-surface-variant whitespace-nowrap hover:border-primary hover:text-primary transition-colors">{filter}</button>
               ))}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {courses.map(course => (
+              {featuredPaidCourses.map(course => (
                 <GlowCard key={course.id} glowColor="blue" className="bg-white overflow-hidden border border-outline-variant/10 h-auto">
                   <div className="w-full h-48 bg-black overflow-hidden relative">
                     {course.videoUrl ? (
@@ -491,18 +697,33 @@ export default function Dashboard() {
                       <span className="text-lg font-black text-secondary">₦{course.price.toLocaleString()}</span>
                     </div>
                     <button 
-                      onClick={() => {
+                      onClick={hasActiveSubscription ? () => {
                         setSelectedCourse(course as any);
                         setShowCourseOverview(true);
-                      }}
-                      className="w-full py-3 bg-primary text-white rounded-xl font-bold text-sm"
+                      } : handleSubscribe}
+                      disabled={subscriptionCheckoutLoading}
+                      className="w-full py-3 bg-primary text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all"
                     >
-                      View Course
+                      <CreditCard size={18} /> {hasActiveSubscription ? 'Start Course' : 'Subscribe'}
                     </button>
                   </div>
                 </GlowCard>
               ))}
             </div>
+            {!loading && featuredPaidCourses.length === 0 && (
+              <div className="rounded-3xl border border-dashed border-outline-variant/20 bg-white p-10 text-center">
+                <BookOpen className="mx-auto mb-4 text-on-surface-variant/40" size={42} />
+                <h3 className="font-headline text-xl font-bold text-primary">No courses are visible yet</h3>
+                <p className="mt-2 text-sm text-on-surface-variant">
+                  {courseLoadError || 'Published creator courses will appear here automatically.'}
+                </p>
+              </div>
+            )}
+            {loading && (
+              <div className="rounded-3xl border border-outline-variant/10 bg-white p-10 text-center text-sm font-bold text-on-surface-variant">
+                Loading courses...
+              </div>
+            )}
           </div>
         );
 
@@ -623,17 +844,6 @@ export default function Dashboard() {
                   {isUpdating ? 'Updating...' : 'Update Profile'}
                 </button>
 
-                <div className="pt-6 mt-6 border-t border-outline-variant/10">
-                  <h3 className="text-lg font-headline font-bold text-primary mb-2">Creator Account</h3>
-                  <p className="text-sm text-on-surface-variant mb-4">Want to upload courses and earn money? Upgrade your account to become a creator.</p>
-                  <button 
-                    onClick={handleUpgradeToCreator} 
-                    disabled={isUpdating} 
-                    className="w-full py-4 bg-secondary text-white rounded-xl font-bold disabled:opacity-50 hover:bg-secondary/90 transition-colors"
-                  >
-                    Upgrade to Creator Account
-                  </button>
-                </div>
               </div>
               {/* CAMERA MODAL */}
               {showCamera && (

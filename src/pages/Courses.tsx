@@ -1,12 +1,44 @@
 import React from 'react';
-import { Search, SlidersHorizontal, Star } from 'lucide-react';
-import { COURSES } from '../constants';
+import { BookOpen, Search, SlidersHorizontal, Star } from 'lucide-react';
 import CourseCard from '../components/CourseCard';
 import { cn } from '../lib/utils';
+import { Course } from '../types';
+import { fetchPaidCourses } from '../lib/courses';
 
 export default function Courses() {
   const [activeCategory, setActiveCategory] = React.useState('All Courses');
-  const categories = ['All Courses', 'AI & ML', 'Data Science', 'Web Development', 'Automation', 'Programming'];
+  const [searchTerm, setSearchTerm] = React.useState('');
+  const [courses, setCourses] = React.useState<Course[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const categories = React.useMemo(() => {
+    const courseCategories = [...new Set(courses.map((course) => course.category).filter(Boolean))];
+    return ['All Courses', ...courseCategories];
+  }, [courses]);
+
+  React.useEffect(() => {
+    fetchCourses();
+  }, []);
+
+  const fetchCourses = async () => {
+    setLoading(true);
+    try {
+      setCourses(await fetchPaidCourses());
+    } catch (error: any) {
+      console.error('Error fetching courses:', error);
+      window.showToast?.(error.message || 'Unable to load courses.', 'error');
+      setCourses([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const visibleCourses = courses.filter((course) => {
+    const matchesCategory = activeCategory === 'All Courses' || course.category === activeCategory;
+    const term = searchTerm.trim().toLowerCase();
+    const matchesSearch = !term || [course.title, course.description, course.category, course.instructor.name]
+      .some((value) => value.toLowerCase().includes(term));
+    return matchesCategory && matchesSearch;
+  });
 
   return (
     <div className="bg-white">
@@ -27,10 +59,12 @@ export default function Courses() {
                 <input
                   type="text"
                   placeholder="Search courses"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
                   className="h-11 w-full rounded-lg border border-outline-variant bg-surface-container-low pl-11 pr-4 text-sm outline-none focus:border-secondary focus:bg-white"
                 />
               </div>
-              <button className="mt-3 w-full rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white hover:bg-primary-container active:scale-95 transition-all">
+              <button onClick={() => setActiveCategory('All Courses')} className="mt-3 w-full rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white hover:bg-primary-container active:scale-95 transition-all">
                 Find Your Course
               </button>
             </div>
@@ -67,7 +101,7 @@ export default function Courses() {
               </div>
               <div className="space-y-7">
                 <FilterGroup title="Difficulty" options={['Beginner', 'Intermediate', 'Advanced']} />
-                <FilterGroup title="Price" options={['Free', 'Under NGN 50k', 'Premium']} />
+                <FilterGroup title="Price" options={['Under NGN 50k', 'Premium']} />
                 <div>
                   <h3 className="mb-3 text-sm font-semibold text-primary">Ratings</h3>
                   {[4.5, 4.0].map((rating) => (
@@ -84,7 +118,7 @@ export default function Courses() {
 
           <main className="space-y-6 min-w-0">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <p className="text-sm text-on-surface-variant">Showing {COURSES.length} courses</p>
+              <p className="text-sm text-on-surface-variant">Showing {visibleCourses.length} paid courses</p>
               <select className="h-10 w-full sm:w-auto rounded-lg border border-outline-variant bg-white px-3 text-sm font-medium text-primary outline-none">
                 <option>Most Popular</option>
                 <option>Newest First</option>
@@ -93,10 +127,22 @@ export default function Courses() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 xl:gap-5">
-              {COURSES.map((course) => (
+              {visibleCourses.map((course) => (
                 <CourseCard key={course.id} course={course} />
               ))}
             </div>
+            {!loading && visibleCourses.length === 0 && (
+              <div className="rounded-xl border border-dashed border-outline-variant bg-white p-10 text-center">
+                <BookOpen className="mx-auto mb-4 text-on-surface-variant/40" size={42} />
+                <h3 className="font-headline text-xl font-semibold text-primary">No paid courses found</h3>
+                <p className="mt-2 text-sm text-on-surface-variant">Published creator courses will appear here automatically.</p>
+              </div>
+            )}
+            {loading && (
+              <div className="rounded-xl border border-outline-variant bg-white p-10 text-center text-sm font-semibold text-on-surface-variant">
+                Loading paid courses...
+              </div>
+            )}
           </main>
         </div>
       </div>

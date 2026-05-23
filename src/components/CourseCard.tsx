@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, PlayCircle, ShoppingCart, Star, Users } from 'lucide-react';
+import { Clock, CreditCard, PlayCircle, Star, Users } from 'lucide-react';
 import { Course } from '../types';
 import { cn } from '../lib/utils';
 
@@ -90,10 +90,15 @@ export default function CourseCard({ course, className }: CourseCardProps) {
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
-            <span className="font-mono text-sm font-semibold text-primary">NGN {course.price.toLocaleString()}</span>
-            <button className="h-9 w-9 rounded-full bg-primary text-white inline-flex items-center justify-center hover:bg-primary-container active:translate-y-px active:scale-[0.98] transition-all" aria-label={`Add ${course.title} to cart`}>
-              <ShoppingCart size={16} />
-            </button>
+            <span className="font-mono text-sm font-semibold text-primary">Monthly access</span>
+            <Link
+              to={`/course/${course.id}`}
+              className="h-9 rounded-full bg-primary px-3 text-white inline-flex items-center gap-1.5 justify-center hover:bg-primary-container active:translate-y-px active:scale-[0.98] transition-all"
+              aria-label={`Subscribe to access ${course.title}`}
+            >
+              <CreditCard size={15} />
+              <span className="text-xs font-bold">Subscribe</span>
+            </Link>
           </div>
         </div>
       </div>

@@ -84,7 +84,7 @@ export default function Home() {
                 to="/become-creator"
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-primary hover:bg-surface-container active:scale-95 transition-all"
               >
-                Become a Creator
+                Creator Info
               </Link>
             </div>
           </motion.div>

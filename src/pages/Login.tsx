@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRight, Lock, Mail, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { supabase } from '../lib/supabase';
@@ -7,26 +7,41 @@ import { useAuth } from '../contexts/AuthContext';
 
 export default function Login() {
   const navigate = useNavigate();
+  const routeLocation = useLocation();
   const { user, profile } = useAuth();
-  const location = import.meta.env.SSR ? null : window.location;
-  const queryRole = new URLSearchParams(location?.search).get('role') as 'student' | 'creator';
+  const searchParams = new URLSearchParams(routeLocation.search);
+  const requestedRole = searchParams.get('role');
+  const queryRole: 'student' | 'creator' = requestedRole === 'creator' ? 'creator' : 'student';
+  const redirectTo = searchParams.get('redirect');
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'student' | 'creator'>(queryRole || 'student');
+  const [role, setRole] = useState<'student' | 'creator'>(queryRole);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
+  const getSafeRedirectPath = () => {
+    const stateFrom = routeLocation.state?.from?.pathname;
+    const requestedPath = redirectTo || stateFrom;
+    return requestedPath?.startsWith('/') && !requestedPath.startsWith('//') ? requestedPath : null;
+  };
+
+  const getPostLoginPath = (profileRole?: string | null) => {
+    if (role === 'student') {
+      return getSafeRedirectPath() || '/dashboard';
+    }
+
+    if (profileRole === 'admin') return '/admin';
+    if (profileRole === 'creator') return '/creator-dashboard';
+    return '/dashboard';
+  };
+
   React.useEffect(() => {
     if (user && profile) {
-      if (profile.role === 'creator') {
-        navigate('/creator-dashboard');
-      } else {
-        navigate('/dashboard');
-      }
+      navigate(getPostLoginPath(profile.role), { replace: true });
     }
-  }, [user, profile, navigate]);
+  }, [user, profile, navigate, role, redirectTo, routeLocation.state]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,13 +71,11 @@ export default function Login() {
           return;
         }
 
-        if (profileData?.role === 'creator') {
-          navigate('/creator-dashboard');
-        } else if (profileData?.role === 'admin') {
-          navigate('/admin');
-        } else {
-          navigate('/dashboard');
+        if (role === 'creator' && !['creator', 'admin'].includes(profileData?.role || '')) {
+          window.showToast?.('This account is a student account. Opening the student dashboard.', 'info');
         }
+
+        navigate(getPostLoginPath(profileData?.role), { replace: true });
       }
     } catch (err: any) {
       console.error('Login error:', err);
@@ -176,8 +189,8 @@ export default function Login() {
           <div className="absolute inset-0 bg-gradient-to-r from-secondary/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
           <h3 className="font-headline font-bold text-primary mb-2 relative z-10">Are you an AI Expert?</h3>
           <p className="text-sm text-on-surface-variant mb-4 relative z-10">Upload your videos, reach thousands of students, and make money.</p>
-          <Link to="/signup?role=creator" className="inline-flex items-center gap-2 bg-secondary text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:scale-105 active:scale-95 transition-all shadow-md shadow-secondary/20 relative z-10">
-            Become a Creator <ArrowRight size={16} />
+          <Link to="/become-creator" className="inline-flex items-center gap-2 bg-secondary text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:scale-105 active:scale-95 transition-all shadow-md shadow-secondary/20 relative z-10">
+            Learn About Creators <ArrowRight size={16} />
           </Link>
         </div>
       </div>

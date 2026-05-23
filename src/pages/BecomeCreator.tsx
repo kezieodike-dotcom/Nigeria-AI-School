@@ -73,8 +73,8 @@ export default function BecomeCreator() {
               Teach what you know. Reach a global audience. Earn without limits. You teach. We handle the platform.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link to="/signup?role=creator" className="inline-flex items-center gap-2 bg-secondary text-white px-10 py-4 rounded-xl font-bold text-lg shadow-xl shadow-secondary/20 hover:scale-[1.02] active:scale-95 transition-all">
-                Become a Creator
+              <Link to="/contact-us" className="inline-flex items-center gap-2 bg-secondary text-white px-10 py-4 rounded-xl font-bold text-lg shadow-xl shadow-secondary/20 hover:scale-[1.02] active:scale-95 transition-all">
+                Apply Through Admin
                 <ArrowRight size={20} />
               </Link>
               <button className="bg-white/10 backdrop-blur-md text-white border border-white/20 px-10 py-4 rounded-xl font-bold text-lg hover:bg-white/20 transition-all flex items-center gap-2">
@@ -154,7 +154,7 @@ export default function BecomeCreator() {
                   </div>
                 ))}
               </div>
-              <Link to="/signup?role=creator" className="mt-12 flex items-center gap-2 text-primary font-bold hover:gap-4 transition-all group">
+              <Link to="/contact-us" className="mt-12 flex items-center gap-2 text-primary font-bold hover:gap-4 transition-all group">
                 Start Your Application <ArrowRight size={20} />
               </Link>
             </div>
@@ -200,7 +200,7 @@ export default function BecomeCreator() {
           <h2 className="font-headline font-bold text-4xl md:text-5xl text-white mb-8 relative z-10">Ready to share your knowledge?</h2>
           <p className="text-white/80 text-xl mb-12 max-w-2xl mx-auto relative z-10">Join Africa's most prestigious AI creator community today.</p>
           <div className="flex justify-center relative z-10">
-            <Link to="/signup?role=creator" className="bg-white text-secondary px-10 py-4 rounded-xl font-bold text-lg shadow-xl hover:scale-105 transition-all">
+            <Link to="/contact-us" className="bg-white text-secondary px-10 py-4 rounded-xl font-bold text-lg shadow-xl hover:scale-105 transition-all">
               Apply Now
             </Link>
           </div>

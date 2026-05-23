@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Search, User, LogOut, LayoutDashboard, ArrowRight } from 'lucide-react';
+import { Menu, X, Search, User, LogOut, LayoutDashboard, ArrowRight, ShieldCheck } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -19,6 +19,17 @@ export default function Layout({ children }: LayoutProps) {
     { name: 'Creators', href: '/become-creator' },
     { name: 'About', href: '/about' },
   ];
+
+  const dashboardHref = profile?.role === 'admin'
+    ? '/admin'
+    : profile?.role === 'creator'
+      ? '/creator-dashboard'
+      : '/dashboard';
+  const dashboardLabel = profile?.role === 'admin'
+    ? 'Admin'
+    : profile?.role === 'creator'
+      ? 'Creator Hub'
+      : 'Dashboard';
 
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden">
@@ -55,11 +66,11 @@ export default function Layout({ children }: LayoutProps) {
             {user ? (
               <div className="flex items-center gap-3">
                 <Link 
-                  to={profile?.role === 'creator' ? "/creator-dashboard" : "/dashboard"} 
+                  to={dashboardHref} 
                   className="flex items-center gap-2 text-sm font-medium text-primary border border-outline-variant px-4 py-2 rounded-full hover:bg-surface-container transition-colors"
                 >
                   <LayoutDashboard size={18} />
-                  {profile?.role === 'creator' ? 'Creator Hub' : 'Dashboard'}
+                  {dashboardLabel}
                 </Link>
                 <button
                   onClick={() => signOut()}
@@ -112,12 +123,12 @@ export default function Layout({ children }: LayoutProps) {
               {user ? (
                 <>
                   <Link 
-                    to={profile?.role === 'creator' ? "/creator-dashboard" : "/dashboard"} 
+                    to={dashboardHref} 
                     onClick={() => setIsMenuOpen(false)}
                     className="flex items-center justify-center gap-2 py-3 bg-surface-container text-primary rounded-full font-medium border border-outline-variant"
                   >
                     <LayoutDashboard size={20} />
-                    {profile?.role === 'creator' ? 'Creator Hub' : 'Dashboard'}
+                    {dashboardLabel}
                   </Link>
                   <button 
                     onClick={() => {
@@ -176,7 +187,7 @@ export default function Layout({ children }: LayoutProps) {
             <h4 className="text-sm font-semibold text-primary mb-5 font-headline">Opportunities</h4>
             <ul className="space-y-4">
               <li><Link to="#" className="text-sm text-on-surface-variant hover:text-primary transition-colors">Affiliate Program</Link></li>
-              <li><Link to="#" className="text-sm text-on-surface-variant hover:text-primary transition-colors">Become a Creator</Link></li>
+              <li><Link to="/become-creator" className="text-sm text-on-surface-variant hover:text-primary transition-colors">Creator Applications</Link></li>
               <li><Link to="#" className="text-sm text-on-surface-variant hover:text-primary transition-colors">Job Board</Link></li>
             </ul>
           </div>
@@ -187,6 +198,15 @@ export default function Layout({ children }: LayoutProps) {
               <li><Link to="#" className="text-sm text-on-surface-variant hover:text-primary transition-colors">Terms of Service</Link></li>
               <li><Link to="#" className="text-sm text-on-surface-variant hover:text-primary transition-colors">Privacy Policy</Link></li>
             </ul>
+            {profile?.role === 'admin' && (
+              <Link
+                to="/admin"
+                className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-primary-container active:scale-95"
+              >
+                <ShieldCheck size={16} />
+                Admin Dashboard
+              </Link>
+            )}
           </div>
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-12 pt-8 border-t border-outline-variant flex flex-col md:flex-row justify-between items-center gap-4">
