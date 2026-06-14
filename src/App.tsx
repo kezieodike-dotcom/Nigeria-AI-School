@@ -26,6 +26,8 @@ import HowItWorks from './pages/HowItWorks';
 
 import AboutUs from './pages/AboutUs';
 import ContactUs from './pages/ContactUs';
+import Blog from './pages/Blog';
+import Socials from './pages/Socials';
 
 export default function App() {
   return (
@@ -63,6 +65,8 @@ export default function App() {
               />
               <Route path="/how-it-works" element={<HowItWorks />} />
               <Route path="/about" element={<AboutUs />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/socials" element={<Socials />} />
               <Route path="/contact-us" element={<ContactUs />} />
               <Route path="/become-creator" element={<BecomeCreator />} />
               <Route path="/course/:id" element={<CourseDetail />} />

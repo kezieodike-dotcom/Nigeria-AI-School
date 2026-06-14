@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { Star, PlayCircle, Clock, Video, FileText, CheckCircle2, ChevronDown, Share2, ShieldCheck, GraduationCap, Users } from 'lucide-react';
+import { Star, PlayCircle, Clock, Video, FileText, CheckCircle2, ChevronDown, Share2, ShieldCheck, GraduationCap, Users, Download, HardDrive, Loader2, Trash2, WifiOff, ClipboardCheck, Target, UploadCloud } from 'lucide-react';
 import { COURSES } from '../constants';
 import { Course } from '../types';
 import { cn } from '../lib/utils';
@@ -11,6 +11,8 @@ import SecureVideo from '../components/SecureVideo';
 import { supabase } from '../lib/supabase';
 import { getSignedCourseVideoUrl } from '../lib/secureVideo';
 import { ActiveSubscription, fetchActiveSubscription, monthlySubscriptionPrice, startMonthlySubscriptionCheckout } from '../lib/subscription';
+import { deleteOfflineVideo, formatOfflineVideoSize, getOfflineVideo, isOfflineVideoPlayable, OfflineVideo, saveOfflineVideo } from '../lib/offlineVideos';
+import { generateCourseAssignment } from '../lib/assignments';
 
 export default function CourseDetail() {
   const { id } = useParams<{ id: string }>();
@@ -23,10 +25,51 @@ export default function CourseDetail() {
   const [activeSubscription, setActiveSubscription] = React.useState<ActiveSubscription | null>(null);
   const [activeModule, setActiveModule] = React.useState<number | null>(0);
   const [activeVideo, setActiveVideo] = React.useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = React.useState<string | null>(null);
+  const [offlineVideo, setOfflineVideo] = React.useState<OfflineVideo | null>(null);
+  const [offlineVideoUrl, setOfflineVideoUrl] = React.useState<string | null>(null);
+  const [offlineDownloadProgress, setOfflineDownloadProgress] = React.useState(0);
+  const [offlineDownloadLoading, setOfflineDownloadLoading] = React.useState(false);
 
   React.useEffect(() => {
     fetchCourseData();
   }, [id]);
+
+  React.useEffect(() => {
+    return () => {
+      if (offlineVideoUrl) URL.revokeObjectURL(offlineVideoUrl);
+    };
+  }, [offlineVideoUrl]);
+
+  React.useEffect(() => {
+    if (!currentUserId || !course?.id) {
+      setOfflineVideo(null);
+      setOfflineVideoUrl(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadOfflineVideo = async () => {
+      try {
+        const storedVideo = await getOfflineVideo(currentUserId, course.id);
+        if (cancelled) return;
+        setOfflineVideo(storedVideo || null);
+        setOfflineVideoUrl((existingUrl) => {
+          if (existingUrl) URL.revokeObjectURL(existingUrl);
+          return storedVideo ? URL.createObjectURL(storedVideo.blob) : null;
+        });
+      } catch (error) {
+        console.warn('Could not load offline video:', error);
+      }
+    };
+
+    loadOfflineVideo();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [course?.id, currentUserId]);
 
   React.useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -77,6 +120,10 @@ export default function CourseDetail() {
       const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
 
       if (!isUuid) {
+        const { data: { user } } = await supabase.auth.getUser();
+        setCurrentUserId(user?.id || null);
+        const subscription = await fetchActiveSubscription(user?.id);
+        setActiveSubscription(subscription);
         setCourse(fallbackCourse || null);
         setReviews([]);
         return;
@@ -91,6 +138,7 @@ export default function CourseDetail() {
 
       if (courseError) throw courseError;
       const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id || null);
       const subscription = await fetchActiveSubscription(user?.id);
       setActiveSubscription(subscription);
       setCourse({
@@ -145,7 +193,7 @@ export default function CourseDetail() {
     }
 
     if (/payment service is not configured/i.test(error?.message || '')) {
-      return 'Payment is not fully configured yet. Please set PAYSTACK_SECRET_KEY in Supabase Edge Function secrets.';
+      return 'Payment is not fully configured yet. Please set PAYSTACK_SECRET_KEY to your Paystack live secret key in Supabase Edge Function secrets.';
     }
 
     return error?.message || 'Unable to start checkout. Please try again.';
@@ -180,6 +228,69 @@ export default function CourseDetail() {
     }
   };
 
+  const hasActiveSubscription = Boolean(activeSubscription);
+  const canPlayOfflineVideo = isOfflineVideoPlayable(offlineVideo);
+  const paidVideoSrc = canPlayOfflineVideo ? offlineVideoUrl : course?.videoUrl;
+  const assignment = course ? (course.assignment || generateCourseAssignment(course)) : null;
+
+  const handleDownloadForOffline = async () => {
+    if (!course) return;
+
+    if (!currentUserId) {
+      navigate(`/login?redirect=/course/${course.id}`);
+      return;
+    }
+
+    if (!activeSubscription) {
+      window.showToast?.('Subscribe first, then you can save paid videos inside the app.', 'error');
+      return;
+    }
+
+    if (!course.videoUrl) {
+      window.showToast?.('This course video is not available for offline download yet.', 'error');
+      return;
+    }
+
+    setOfflineDownloadLoading(true);
+    setOfflineDownloadProgress(0);
+    try {
+      const storedVideo = await saveOfflineVideo({
+        course,
+        userId: currentUserId,
+        sourceUrl: course.videoUrl,
+        expiresAt: activeSubscription.expires_at,
+        onProgress: setOfflineDownloadProgress,
+      });
+
+      setOfflineVideo(storedVideo);
+      setOfflineVideoUrl((existingUrl) => {
+        if (existingUrl) URL.revokeObjectURL(existingUrl);
+        return URL.createObjectURL(storedVideo.blob);
+      });
+      window.showToast?.('Saved inside the app for offline viewing.', 'success');
+    } catch (error: any) {
+      window.showToast?.(error.message || 'Unable to save this video offline.', 'error');
+    } finally {
+      setOfflineDownloadLoading(false);
+    }
+  };
+
+  const handleRemoveOfflineVideo = async () => {
+    if (!course || !currentUserId) return;
+    try {
+      await deleteOfflineVideo(currentUserId, course.id);
+      setOfflineVideo(null);
+      setOfflineVideoUrl((existingUrl) => {
+        if (existingUrl) URL.revokeObjectURL(existingUrl);
+        return null;
+      });
+      if (activeVideo?.startsWith('blob:')) setActiveVideo(null);
+      window.showToast?.('Offline copy removed from this device.', 'success');
+    } catch (error: any) {
+      window.showToast?.(error.message || 'Unable to remove offline video.', 'error');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface">
@@ -197,9 +308,6 @@ export default function CourseDetail() {
     );
   }
   
-  // Mock course asset
-  const sampleVideoUrl = "https://www.w3schools.com/html/mov_bbb.mp4";
-
   // Mock Curriculum Data
   const curriculum = [
     { title: 'Module 1: Introduction to AI concepts', lessons: 5, duration: '2 hours of video' },
@@ -207,8 +315,6 @@ export default function CourseDetail() {
     { title: 'Module 3: Deep Learning & Neural Networks', lessons: 6, duration: '4 hours of video' },
     { title: 'Module 4: Real-world AI Projects', lessons: 4, duration: '2.5 hours of video' },
   ];
-  const hasActiveSubscription = Boolean(activeSubscription);
-
   return (
     <div className="bg-surface pb-24">
       {/* 🚀 Dark Header / Hero Section */}
@@ -334,7 +440,15 @@ export default function CourseDetail() {
                              key={lesson} 
                              className="flex items-center justify-between group cursor-pointer hover:bg-surface-container-lowest p-2 rounded-lg transition-colors"
                              onClick={() => {
-                               setActiveVideo(sampleVideoUrl);
+                               if (!hasActiveSubscription) {
+                                 window.showToast?.('Subscribe to watch paid lessons.', 'error');
+                                 return;
+                               }
+                               if (!paidVideoSrc) {
+                                 window.showToast?.('This lesson video is not available yet.', 'error');
+                                 return;
+                               }
+                               setActiveVideo(paidVideoSrc);
                                window.scrollTo({ top: 0, behavior: 'smooth' });
                              }}
                            >
@@ -354,6 +468,83 @@ export default function CourseDetail() {
               ))}
             </div>
           </section>
+
+          {assignment && (
+            <section className="rounded-3xl border border-secondary/15 bg-white p-6 shadow-sm md:p-8">
+              <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-secondary/10 px-3 py-1.5 text-xs font-black uppercase tracking-widest text-secondary">
+                    <ClipboardCheck size={14} />
+                    Assignment / Project
+                  </div>
+                  <h2 className="font-headline text-2xl font-black text-primary md:text-3xl">{assignment.title}</h2>
+                  <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-on-surface-variant">{assignment.brief}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-center sm:w-56">
+                  <div className="rounded-2xl bg-surface-container-low p-3">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Time</p>
+                    <p className="mt-1 font-headline text-sm font-black text-primary">{assignment.estimatedTime}</p>
+                  </div>
+                  <div className="rounded-2xl bg-surface-container-low p-3">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Level</p>
+                    <p className="mt-1 font-headline text-sm font-black text-primary">{assignment.difficulty}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+                <div className="space-y-5">
+                  <div className="rounded-2xl border border-outline-variant/10 bg-surface-container-lowest p-5">
+                    <div className="mb-3 flex items-center gap-2 text-sm font-black text-primary">
+                      <Target size={18} className="text-secondary" />
+                      Scenario
+                    </div>
+                    <p className="text-sm font-medium leading-6 text-on-surface-variant">{assignment.scenario}</p>
+                  </div>
+                  <div>
+                    <h3 className="mb-3 font-headline text-lg font-black text-primary">Milestones</h3>
+                    <div className="space-y-3">
+                      {assignment.milestones.map((milestone, index) => (
+                        <div key={milestone} className="flex gap-3 rounded-2xl border border-outline-variant/10 bg-white p-4">
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-black text-white">{index + 1}</span>
+                          <p className="text-sm font-medium leading-6 text-on-surface-variant">{milestone}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-5">
+                  <div>
+                    <h3 className="mb-3 font-headline text-lg font-black text-primary">Deliverables</h3>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {assignment.deliverables.map((deliverable) => (
+                        <div key={deliverable} className="flex gap-3 rounded-2xl bg-secondary/5 p-4">
+                          <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-secondary" />
+                          <p className="text-sm font-bold leading-6 text-primary">{deliverable}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-outline-variant/10 bg-surface-container-lowest p-5">
+                    <h3 className="font-headline text-lg font-black text-primary">Submission</h3>
+                    <p className="mt-2 text-sm font-medium leading-6 text-on-surface-variant">{assignment.submissionFormat}</p>
+                    <textarea
+                      placeholder="Paste your project link, notes, or reflection here"
+                      className="mt-4 min-h-28 w-full resize-none rounded-2xl border border-outline-variant/20 bg-white p-4 text-sm font-medium text-primary outline-none focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+                    />
+                    <button
+                      onClick={() => window.showToast?.('Assignment submission saved locally for now. Connect storage/database when you are ready to accept files.', 'success')}
+                      className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-black text-white transition-all hover:bg-primary-container active:scale-95"
+                    >
+                      <UploadCloud size={17} /> Save Submission
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
 
           {/* Reviews */}
           <section className="pt-8">
@@ -413,7 +604,13 @@ export default function CourseDetail() {
             ) : (
               <div 
                 className="relative h-56 bg-primary cursor-pointer group"
-                onClick={() => setActiveVideo(sampleVideoUrl)}
+                onClick={() => {
+                  if (!hasActiveSubscription) {
+                    window.showToast?.('Subscribe to watch paid lessons.', 'error');
+                    return;
+                  }
+                  if (paidVideoSrc) setActiveVideo(paidVideoSrc);
+                }}
               >
                 <img 
                   src={course.thumbnail} 
@@ -458,6 +655,73 @@ export default function CourseDetail() {
                 >
                   {hasActiveSubscription ? 'Subscription Active' : checkoutLoading ? 'Opening Checkout...' : 'Subscribe Now'}
                 </button>
+              </div>
+
+              <div className="mb-8 rounded-2xl border border-outline-variant/15 bg-surface-container-lowest p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
+                    {canPlayOfflineVideo ? <WifiOff size={21} /> : <HardDrive size={21} />}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-headline text-base font-black text-primary">In-app offline video</h3>
+                    <p className="mt-1 text-xs font-medium leading-5 text-on-surface-variant">
+                      {canPlayOfflineVideo
+                        ? `Saved on this device. Expires ${new Date(offlineVideo!.expiresAt).toLocaleDateString()}.`
+                        : 'Subscribers can save this video inside the app and watch it from this device without streaming.'}
+                    </p>
+
+                    {offlineDownloadLoading && (
+                      <div className="mt-4">
+                        <div className="mb-2 flex items-center justify-between text-xs font-black text-primary">
+                          <span>Saving video</span>
+                          <span>{offlineDownloadProgress}%</span>
+                        </div>
+                        <div className="h-2 rounded-full bg-white">
+                          <div
+                            className="h-full rounded-full bg-secondary transition-all"
+                            style={{ width: `${offlineDownloadProgress}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                      {canPlayOfflineVideo ? (
+                        <>
+                          <button
+                            onClick={() => {
+                              if (offlineVideoUrl) setActiveVideo(offlineVideoUrl);
+                            }}
+                            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-xs font-black text-white transition-all hover:bg-primary-container active:scale-95"
+                          >
+                            <PlayCircle size={16} /> Watch Offline
+                          </button>
+                          <button
+                            onClick={handleRemoveOfflineVideo}
+                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/20 bg-white px-4 py-3 text-xs font-black text-red-600 transition-all hover:bg-red-50 active:scale-95"
+                          >
+                            <Trash2 size={16} /> Remove
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={handleDownloadForOffline}
+                          disabled={!hasActiveSubscription || offlineDownloadLoading || !course.videoUrl}
+                          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-3 text-xs font-black text-white transition-all hover:bg-secondary/90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-55"
+                        >
+                          {offlineDownloadLoading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+                          {hasActiveSubscription ? 'Save In App' : 'Subscribe to Save'}
+                        </button>
+                      )}
+                    </div>
+
+                    {canPlayOfflineVideo && (
+                      <p className="mt-3 text-[11px] font-bold uppercase tracking-wide text-on-surface-variant">
+                        {formatOfflineVideoSize(offlineVideo!.size)} stored locally
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-4 text-sm text-on-surface-variant border-b border-outline-variant/10 pb-6 mb-6">

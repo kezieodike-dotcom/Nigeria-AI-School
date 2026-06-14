@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { getPaystackSecretKey } from "../_shared/paystack.ts";
 
 function jsonResponse(body: Record<string, unknown>, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -126,12 +127,12 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: "Method not allowed" }, 405);
   }
 
-  const paystackSecretKey = Deno.env.get("PAYSTACK_SECRET_KEY");
+  const { key: paystackSecretKey, error: paystackConfigError } = getPaystackSecretKey();
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-  if (!paystackSecretKey || !supabaseUrl || !serviceRoleKey) {
-    return jsonResponse({ error: "Payment service is not configured" }, 500);
+  if (paystackConfigError || !paystackSecretKey || !supabaseUrl || !serviceRoleKey) {
+    return jsonResponse({ error: paystackConfigError ?? "Payment service is not configured" }, 500);
   }
 
   const rawBody = await req.text();

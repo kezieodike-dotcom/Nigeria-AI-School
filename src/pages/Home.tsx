@@ -1,430 +1,427 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Sparkles, Share2, TrendingUp, ShieldCheck, CreditCard, ChevronRight, BookOpen, Rocket, Globe, Zap, Users } from 'lucide-react';
+import {
+  ArrowRight,
+  BookOpen,
+  BrainCircuit,
+  CheckCircle2,
+  ChevronRight,
+  Code2,
+  CreditCard,
+  FileVideo,
+  Globe,
+  GraduationCap,
+  Layers3,
+  Rocket,
+  ShieldCheck,
+  Share2,
+  Sparkles,
+  TrendingUp,
+  Users,
+  Zap,
+} from 'lucide-react';
 import { motion } from 'motion/react';
 import { COURSES, CREATORS } from '../constants';
 import CourseCard from '../components/CourseCard';
 import GlowCard from '../components/ui/spotlight-card';
 import { cn } from '../lib/utils';
 
+const categoryCards = [
+  {
+    title: 'Content Creation',
+    kicker: 'Create with AI',
+    description: 'Plan scripts, edit faster, design campaign assets, and turn ideas into polished media workflows.',
+    icon: FileVideo,
+    accent: 'bg-emerald-600',
+    tint: 'from-emerald-50 to-white',
+    border: 'border-emerald-600/15',
+    stat: '14 creator workflows',
+  },
+  {
+    title: 'Coding',
+    kicker: 'Build software',
+    description: 'Learn Python, web apps, automation, and AI-assisted development with practical Nigerian use cases.',
+    icon: Code2,
+    accent: 'bg-sky-700',
+    tint: 'from-sky-50 to-white',
+    border: 'border-sky-700/15',
+    stat: '22 build projects',
+  },
+  {
+    title: 'Productivity',
+    kicker: 'Work smarter',
+    description: 'Use AI to organize research, build repeatable systems, analyze tasks, and reclaim focused time.',
+    icon: Layers3,
+    accent: 'bg-amber-600',
+    tint: 'from-amber-50 to-white',
+    border: 'border-amber-600/15',
+    stat: '18 practical systems',
+  },
+];
+
+const processSteps = [
+  {
+    title: 'Learn',
+    desc: 'Master AI, software, and digital skills through creator-led lessons built around real work.',
+    icon: BookOpen,
+  },
+  {
+    title: 'Create',
+    desc: 'Turn your expertise into a course, publish it, and reach learners beyond your immediate network.',
+    icon: Rocket,
+  },
+  {
+    title: 'Earn',
+    desc: 'Subscribe to skills, sell your knowledge, or grow income through referrals and creator tools.',
+    icon: CreditCard,
+  },
+];
+
+const creatorBenefits = [
+  { text: 'Secure video hosting and protected learning access', icon: ShieldCheck },
+  { text: 'Payments for Nigerian and global learners', icon: CreditCard },
+  { text: 'Affiliate tools that help your audience spread the word', icon: Share2 },
+];
+
 export default function Home() {
   return (
-    <div className="space-y-24 pb-24">
-      {/* 🏠 HERO SECTION */}
-      <section className="relative overflow-hidden py-16 md:py-32 bg-surface-container-lowest">
+    <div className="overflow-hidden bg-surface pb-20">
+      <section className="relative min-h-[88dvh] overflow-hidden bg-[#f8fbf9]">
         <img
-          src="https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg?auto=compress&cs=tinysrgb&w=1600"
+          src="https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg?auto=compress&cs=tinysrgb&w=1800"
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 h-full w-full object-cover opacity-[0.16]"
+          className="absolute inset-y-0 right-0 hidden h-full w-[54%] object-cover opacity-90 lg:block"
         />
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-surface-container-lowest/82" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_15%,rgba(0,108,73,0.14),transparent_34%),linear-gradient(135deg,rgba(0,21,77,0.08),transparent_42%)]" />
-          <div className="absolute inset-0 opacity-[0.34] bg-[linear-gradient(rgba(0,21,77,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(0,21,77,0.08)_1px,transparent_1px)] bg-[size:42px_42px]" />
-          <div className="absolute left-1/2 top-8 h-[460px] w-[460px] -translate-x-1/2 rounded-full border border-secondary/15 bg-secondary/5 blur-3xl" />
-          <div className="absolute -right-24 top-16 hidden h-[420px] w-[420px] rounded-full border border-primary/10 md:block" />
-          <div className="absolute right-[8%] top-24 hidden w-52 rounded-3xl border border-white/60 bg-white/50 p-4 shadow-2xl shadow-primary/10 backdrop-blur-xl md:block">
-            <div className="flex items-center gap-2 border-b border-primary/10 pb-3">
-              <span className="h-2.5 w-2.5 rounded-full bg-secondary" />
-              <span className="h-2.5 w-2.5 rounded-full bg-primary/30" />
-              <span className="h-2.5 w-2.5 rounded-full bg-primary/20" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,#f8fbf9_0%,#f8fbf9_44%,rgba(248,251,249,0.84)_64%,rgba(248,251,249,0.38)_100%)]" />
+        <div className="absolute inset-0 opacity-[0.45] bg-[linear-gradient(rgba(0,21,77,0.07)_1px,transparent_1px),linear-gradient(90deg,rgba(0,21,77,0.07)_1px,transparent_1px)] bg-[size:44px_44px]" />
+
+        <div className="relative mx-auto grid min-h-[88dvh] max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] lg:py-24">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.65 }}
+            className="max-w-3xl"
+          >
+            <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-secondary/15 bg-white/80 px-4 py-2 text-xs font-black uppercase tracking-widest text-secondary shadow-sm shadow-secondary/5 backdrop-blur">
+              <Sparkles size={14} />
+              Nigeria's practical AI learning hub
             </div>
-            <div className="mt-4 space-y-3">
-              <div className="h-2 w-24 rounded-full bg-primary/20" />
-              <div className="grid grid-cols-5 gap-2">
-                {Array.from({ length: 15 }).map((_, index) => (
-                  <span
-                    key={index}
-                    className={cn(
-                      'h-7 rounded-lg border border-primary/10',
-                      index % 4 === 0 ? 'bg-secondary/30' : 'bg-white/70'
-                    )}
-                  />
-                ))}
+            <h1 className="font-headline text-4xl font-black leading-[1.02] tracking-tight text-primary sm:text-5xl md:text-6xl">
+              Learn AI skills that turn ambition into useful work.
+            </h1>
+            <p className="mt-6 max-w-2xl text-base font-medium leading-relaxed text-on-surface-variant md:text-lg">
+              Nigeria AI School helps learners and creators build real capability in AI, coding, content creation, and productivity systems.
+            </p>
+
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+              <Link
+                to="/courses"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-7 py-4 text-base font-black text-white shadow-lg shadow-primary/15 transition-all hover:bg-primary-container hover:-translate-y-0.5 active:scale-[0.98]"
+              >
+                Explore Courses
+                <ArrowRight size={19} />
+              </Link>
+              <Link
+                to="/become-creator"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-primary/15 bg-white/80 px-7 py-4 text-base font-black text-primary shadow-sm transition-all hover:border-secondary/30 hover:text-secondary active:scale-[0.98]"
+              >
+                Become a Creator
+                <ChevronRight size={19} />
+              </Link>
+            </div>
+
+            <div className="mt-10 grid max-w-2xl grid-cols-3 divide-x divide-primary/10 rounded-3xl border border-primary/10 bg-white/75 p-4 shadow-sm backdrop-blur">
+              {[
+                ['47.2k', 'learning minutes'],
+                ['3', 'core tracks'],
+                ['30%', 'affiliate earning'],
+              ].map(([value, label]) => (
+                <div key={label} className="px-3 text-center first:pl-0 last:pr-0">
+                  <p className="font-headline text-xl font-black text-primary md:text-2xl">{value}</p>
+                  <p className="mt-1 text-[11px] font-bold uppercase tracking-wide text-on-surface-variant">{label}</p>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 28 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.75, delay: 0.12 }}
+            className="relative hidden lg:block"
+          >
+            <div className="ml-auto w-[min(460px,100%)] rounded-[2rem] border border-white/70 bg-white/82 p-5 shadow-2xl shadow-primary/10 backdrop-blur-xl">
+              <div className="aspect-[4/3] overflow-hidden rounded-[1.5rem]">
+                <img
+                  src="https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&cs=tinysrgb&w=1200"
+                  alt="Students learning together"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <div className="mt-5 grid grid-cols-[1fr_auto] items-end gap-4">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-widest text-secondary">Current focus</p>
+                  <h2 className="mt-1 font-headline text-2xl font-black tracking-tight text-primary">AI for real business tasks</h2>
+                </div>
+                <div className="rounded-2xl bg-secondary px-4 py-3 text-right text-white">
+                  <p className="text-2xl font-black">86%</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-white/75">completion</p>
+                </div>
               </div>
             </div>
-          </div>
-          <div className="absolute left-[7%] bottom-16 hidden h-32 w-32 rounded-[2rem] border border-primary/10 bg-white/45 backdrop-blur-md md:block">
-            <div className="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full border border-secondary/30" />
-            <div className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-secondary" />
-          </div>
-        </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col items-center text-center relative">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="z-10 flex flex-col items-center"
-          >
-            <h1 className="font-headline font-extrabold text-3xl md:text-6xl text-primary tracking-tight leading-[1.1]">
-              Learn AI.<br />
-              Build Skills.<br />
-              <span className="text-secondary">Earn Globally.</span>
-            </h1>
-            <p className="mt-2 text-base md:text-lg text-on-surface-variant max-w-lg mb-8 md:mb-10 leading-relaxed">
-              Nigeria AI School is where the world comes to learn cutting-edge tech skills, create powerful courses, and earn from knowledge — all in one platform.
-            </p>
-            <div className="flex flex-wrap justify-center gap-3 mb-8">
-              <Link 
-                to="/signup" 
-                className="flex-grow sm:flex-grow-0 text-center bg-primary text-white px-6 md:px-8 py-3.5 md:py-4 rounded-xl font-bold text-base md:text-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
-              >
-                🚀 Start Learning
-              </Link>
-              <Link 
-                to="/become-creator" 
-                className="hidden"
-              >
-                💼 Become a Creator
-              </Link>
+            <div className="absolute -bottom-8 -left-2 w-64 rounded-3xl border border-white/70 bg-white/88 p-5 shadow-xl shadow-primary/10 backdrop-blur">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-white">
+                  <BrainCircuit size={23} />
+                </div>
+                <div>
+                  <p className="font-headline text-lg font-black text-primary">Live learning paths</p>
+                  <p className="text-sm font-medium text-on-surface-variant">Built for Nigerian teams</p>
+                </div>
+              </div>
             </div>
-            <p className="text-sm text-on-surface-variant font-medium flex items-center gap-2">
-              <Users size={16} className="text-secondary" />
-              Join a growing community of learners and approved creators shaping the future with AI.
-            </p>
           </motion.div>
-
         </div>
       </section>
 
-
-      {/* 🎯 HOW IT WORKS */}
-      <section className="max-w-7xl mx-auto px-6 overflow-visible">
-        <div className="text-center mb-24">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-6 py-2 bg-primary/5 rounded-full text-primary font-black text-xs tracking-widest uppercase mb-6 border border-primary/10"
-          >
-            <Sparkles size={14} className="text-secondary" />
-            THE NIGERIA AI SCHOOL PROCESS
-          </motion.div>
-          <h2 className="font-headline font-black text-2xl md:text-5xl text-primary mb-4 md:mb-6 leading-tight tracking-tight">Simple. Powerful. <span className="text-secondary decoration-secondary/30 underline underline-offset-[8px] md:underline-offset-[12px]">Profitable.</span></h2>
-          <p className="text-on-surface-variant max-w-2xl mx-auto text-sm md:text-lg font-medium opacity-80 leading-relaxed px-4">Three simple steps to build your technical arsenal and join the global AI economy.</p>
+      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
+        <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:items-end">
+          <div>
+            <p className="text-xs font-black uppercase tracking-widest text-secondary">Skill categories</p>
+            <h2 className="mt-3 font-headline text-3xl font-black leading-tight tracking-tight text-primary md:text-5xl">
+              Choose a path you can use this week.
+            </h2>
+          </div>
+          <p className="max-w-2xl text-base font-medium leading-relaxed text-on-surface-variant lg:ml-auto">
+            Start with focused categories that match the work people are already trying to do: create sharper content, write useful code, and build better systems.
+          </p>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16">
-          {[
-            {
-              title: "Learn",
-              desc: "Master cutting-edge AI, Machine Learning, and Software Engineering from industry titans.",
-              icon: BookOpen,
-              glow: "blue" as const,
-              gradient: "from-blue-600 via-indigo-600 to-violet-700",
-              secondaryGradient: "from-blue-50 to-indigo-50",
-              accent: "bg-blue-600",
-              border: "border-blue-600/20",
-              shadow: "shadow-blue-600/20"
-            },
-            {
-              title: "Create",
-              desc: "Design, build, and publish your own courses. Reach a hungry global audience of learners.",
-              icon: Rocket,
-              glow: "purple" as const,
-              gradient: "from-purple-600 via-fuchsia-600 to-pink-700",
-              secondaryGradient: "from-purple-50 to-fuchsia-50",
-              accent: "bg-purple-600",
-              border: "border-purple-600/20",
-              shadow: "shadow-purple-600/20"
-            },
-            {
-              title: "Earn",
-              desc: "Monetize your knowledge directly or earn lifetime commissions through smart referrals.",
-              icon: CreditCard,
-              glow: "green" as const,
-              gradient: "from-emerald-600 via-secondary to-teal-700",
-              secondaryGradient: "from-emerald-50 to-secondary-fixed-dim/20",
-              accent: "bg-secondary",
-              border: "border-secondary/20",
-              shadow: "shadow-secondary/20"
-            }
-          ].map((step, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.2, duration: 0.8, type: "spring" }}
-              whileHover={{ y: -20 }}
-              className="relative group"
+
+        <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-[1.12fr_0.88fr] lg:grid-cols-[1.1fr_0.9fr_1fr]">
+          {categoryCards.map((category, index) => (
+            <Link
+              key={category.title}
+              to="/courses"
+              className={cn(
+                'group relative min-h-[280px] overflow-hidden rounded-[2rem] border bg-gradient-to-br p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 active:scale-[0.99]',
+                category.tint,
+                category.border,
+                index === 0 && 'lg:translate-y-8',
+                index === 1 && 'md:min-h-[330px]',
+              )}
             >
-              {/* Outer Decorative Glow */}
-              <div className={cn(
-                "absolute -inset-4 bg-gradient-to-r opacity-0 group-hover:opacity-40 transition-all duration-700 blur-[40px] rounded-[3.5rem] z-0",
-                step.gradient
-              )} />
-              
-              <GlowCard 
-                glowColor={step.glow}
-                customSize={true}
-                className={cn(
-                  "text-center p-8 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] bg-white border transition-all duration-500 h-auto z-10 relative overflow-hidden",
-                  step.border
-                )}
-              >
-                {/* Internal Mesh-like Decorative Accent */}
-                <div className={cn(
-                  "absolute -top-12 -right-12 w-32 h-32 bg-gradient-to-br opacity-[0.08] group-hover:opacity-20 transition-opacity duration-700 rounded-full blur-2xl",
-                  step.gradient
-                )} />
-
-                <div className={cn(
-                  "w-20 h-20 md:w-24 md:h-24 rounded-3xl md:rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 md:mb-10 transition-all duration-700 group-hover:scale-110 group-hover:rotate-12 relative z-10",
-                  step.accent
-                )}>
-                  <div className="absolute inset-0 bg-white/20 rounded-3xl md:rounded-[2.5rem] animate-pulse" />
-                  <step.icon size={40} className="text-white drop-shadow-xl relative z-20 md:w-12 md:h-12" strokeWidth={2.5} />
-                </div>
-                
-                <div className="space-y-6 relative z-10">
-                  <div className="flex items-center justify-center gap-3">
-                    <div className={cn("h-px w-8 bg-gradient-to-r from-transparent", step.gradient)} />
-                    <h3 className={cn("font-headline font-black text-2xl md:text-3xl bg-clip-text text-transparent bg-gradient-to-br tracking-tight", step.gradient)}>
-                      {step.title}
-                    </h3>
-                    <div className={cn("h-px w-8 bg-gradient-to-l from-transparent", step.gradient)} />
+              <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary/[0.04]" />
+              <div className="relative flex h-full flex-col justify-between">
+                <div>
+                  <div className={cn('mb-8 flex h-14 w-14 items-center justify-center rounded-2xl text-white shadow-lg shadow-primary/10 transition-transform duration-300 group-hover:rotate-3 group-hover:scale-105', category.accent)}>
+                    <category.icon size={27} />
                   </div>
-                  
-                  <p className="text-on-surface-variant leading-relaxed text-base md:text-lg font-bold opacity-75 min-h-[4rem] md:min-h-[5rem]">
-                    {step.desc}
-                  </p>
-                  
-                  <div className="pt-4 flex justify-center">
-                    <Link 
-                      to={`/how-it-works#${step.title.toLowerCase()}`}
-                      className={cn("flex items-center gap-2 font-black text-sm uppercase tracking-widest cursor-pointer hover:translate-x-2 transition-transform", `text-${step.glow}-600`)}
-                    >
-                      Learn More <ChevronRight size={18} strokeWidth={3} />
-                    </Link>
-                  </div>
+                  <p className="text-xs font-black uppercase tracking-widest text-on-surface-variant">{category.kicker}</p>
+                  <h3 className="mt-2 font-headline text-2xl font-black tracking-tight text-primary">{category.title}</h3>
+                  <p className="mt-4 text-sm font-medium leading-relaxed text-on-surface-variant">{category.description}</p>
                 </div>
-
-                {/* Numbering Badge */}
-                <div className="absolute bottom-6 right-8 text-8xl font-black opacity-[0.03] group-hover:opacity-[0.07] transition-opacity pointer-events-none select-none">
-                  0{i + 1}
+                <div className="mt-8 flex items-center justify-between border-t border-primary/10 pt-5">
+                  <span className="text-xs font-black uppercase tracking-widest text-primary/70">{category.stat}</span>
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-primary shadow-sm transition-all group-hover:bg-primary group-hover:text-white">
+                    <ArrowRight size={18} />
+                  </span>
                 </div>
-              </GlowCard>
-            </motion.div>
+              </div>
+            </Link>
           ))}
         </div>
-        
-        <motion.div 
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="text-center mt-24"
-        >
-          <Link 
-            to="/courses" 
-            className="group relative inline-flex items-center gap-4 bg-primary text-white px-8 md:px-16 py-4 md:py-6 rounded-2xl md:rounded-[2rem] font-black text-lg md:text-xl hover:scale-105 active:scale-95 transition-all overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-            🚀 Ready to Begin? <ArrowRight size={24} className="group-hover:translate-x-2 transition-transform duration-300 md:w-7 md:h-7" strokeWidth={3} />
-          </Link>
-        </motion.div>
       </section>
 
-      {/* 🎥 FOR STUDENTS (Featured Courses) */}
-      <section className="max-w-7xl mx-auto px-6">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8 text-left">
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+        <div className="rounded-[2rem] border border-primary/10 bg-white p-6 shadow-sm md:p-10 lg:p-12">
+          <div className="mb-10 max-w-3xl">
+            <p className="text-xs font-black uppercase tracking-widest text-secondary">How it works</p>
+            <h2 className="mt-3 font-headline text-3xl font-black leading-tight tracking-tight text-primary md:text-5xl">
+              A simple system for learning, creating, and earning.
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {processSteps.map((step, index) => (
+              <motion.div
+                key={step.title}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.12, duration: 0.5 }}
+                className="rounded-[1.5rem] border border-outline-variant/15 bg-surface-container-lowest p-6"
+              >
+                <div className="mb-8 flex items-center justify-between">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary/10 text-secondary">
+                    <step.icon size={23} />
+                  </div>
+                  <span className="font-headline text-4xl font-black text-primary/[0.07]">0{index + 1}</span>
+                </div>
+                <h3 className="font-headline text-2xl font-black text-primary">{step.title}</h3>
+                <p className="mt-3 text-sm font-medium leading-relaxed text-on-surface-variant">{step.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+        <div className="mb-10 flex flex-col justify-between gap-5 md:flex-row md:items-end">
           <div className="max-w-2xl">
-            <h2 className="font-headline font-bold text-2xl md:text-3xl text-primary mb-6">Learn Skills That <span className="text-ai-purple">Matter</span></h2>
-            <p className="text-on-surface-variant text-base md:text-lg leading-relaxed font-medium">
-              Join thousands of students mastering AI from the ground up. Our curriculum is built by industry experts to ensure you're ready for the global market.
+            <p className="text-xs font-black uppercase tracking-widest text-secondary">Featured courses</p>
+            <h2 className="mt-3 font-headline text-3xl font-black tracking-tight text-primary md:text-4xl">Learn skills that compound.</h2>
+            <p className="mt-4 text-base font-medium leading-relaxed text-on-surface-variant">
+              Explore practical courses from approved creators and subscribe when you find your fit.
             </p>
           </div>
-          <Link to="/courses" className="bg-primary/5 text-primary px-8 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-primary hover:text-white transition-all group whitespace-nowrap">
-            Explore All Courses <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+          <Link to="/courses" className="inline-flex items-center gap-2 rounded-2xl bg-primary/5 px-6 py-3 text-sm font-black text-primary transition-all hover:bg-primary hover:text-white active:scale-[0.98]">
+            Explore all courses <ArrowRight size={18} />
           </Link>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {COURSES.map((course) => (
             <CourseCard key={course.id} course={course} />
           ))}
         </div>
       </section>
 
-      {/* 🎓 FOR CREATORS */}
-      <section className="bg-surface-container-low py-32 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
-        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-20 items-center">
-          <div className="relative group">
-            <div className="absolute inset-0 bg-secondary/20 rounded-[3rem] rotate-3 group-hover:rotate-6 transition-transform duration-700" />
-            <img 
-              src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=800" 
-              alt="Creator teaching" 
-              className="relative z-10 rounded-[3rem] object-cover w-full h-[550px] transition-transform duration-700 group-hover:-translate-y-2"
-              referrerPolicy="no-referrer"
+      <section className="bg-surface-container-low py-20">
+        <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[0.92fr_1.08fr]">
+          <div className="relative">
+            <div className="absolute -inset-4 rounded-[2.5rem] bg-secondary/10" />
+            <img
+              src="https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=1200"
+              alt="Creator teaching a small team"
+              className="relative h-[420px] w-full rounded-[2rem] object-cover shadow-xl shadow-primary/10 md:h-[540px]"
             />
-            <div className="absolute -bottom-10 -right-10 bg-white p-8 rounded-[2rem] z-20 hidden lg:block border border-outline-variant/10">
-               <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-secondary/10 rounded-full flex items-center justify-center text-secondary">
-                    <TrendingUp size={24} />
-                  </div>
-                  <div>
-                    <p className="text-xl font-black text-primary">₦500k+</p>
-                    <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Avg. Monthly Earnings</p>
-                  </div>
-               </div>
+            <div className="absolute -bottom-8 right-6 hidden rounded-3xl border border-outline-variant/10 bg-white p-6 shadow-xl shadow-primary/10 lg:block">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary/10 text-secondary">
+                  <TrendingUp size={24} />
+                </div>
+                <div>
+                  <p className="text-xl font-black text-primary">NGN 500k+</p>
+                  <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">creator potential</p>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="space-y-8">
-            <h2 className="font-headline font-black text-2xl md:text-4xl text-primary leading-tight">Turn Your Knowledge Into <span className="text-secondary">Generational Income</span></h2>
-            <p className="text-on-surface-variant text-lg md:text-xl leading-relaxed font-medium">
-              Teach what you know. Reach a global audience. Earn without limits. We provide the ecosystem, you provide the expertise.
+
+          <div>
+            <p className="text-xs font-black uppercase tracking-widest text-secondary">For creators</p>
+            <h2 className="mt-3 font-headline text-3xl font-black leading-tight tracking-tight text-primary md:text-5xl">
+              Turn what you know into a learning product.
+            </h2>
+            <p className="mt-5 text-base font-medium leading-relaxed text-on-surface-variant md:text-lg">
+              Teach the skills you use every day, package your knowledge for serious learners, and grow a revenue channel around your expertise.
             </p>
-            <ul className="space-y-6">
-              {[
-                { text: "Institutional Video Hosting & Security", icon: ShieldCheck },
-                { text: "Global Payment Processing (USD/NGN)", icon: CreditCard },
-                { text: "Automated Affiliate Marketing Network", icon: Share2 }
-              ].map((item, i) => (
-                <li key={i} className="flex items-center gap-4 group">
-                  <div className="w-10 h-10 rounded-xl bg-white border border-outline-variant/10 flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-white transition-all shadow-sm">
-                    <item.icon size={20} />
+            <ul className="mt-8 space-y-4">
+              {creatorBenefits.map((item) => (
+                <li key={item.text} className="flex items-center gap-4">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-secondary shadow-sm">
+                    <item.icon size={21} />
                   </div>
-                  <span className="text-on-surface font-bold text-lg">{item.text}</span>
+                  <span className="text-base font-bold text-on-surface">{item.text}</span>
                 </li>
               ))}
             </ul>
-            <div className="pt-6">
-              <Link 
-                to="/become-creator" 
-                className="inline-flex bg-primary text-white px-10 md:px-12 py-4 md:py-5 rounded-xl md:rounded-2xl font-black text-lg md:text-xl hover:scale-105 active:scale-95 transition-all"
-              >
-                Become a Creator →
-              </Link>
-            </div>
+            <Link
+              to="/become-creator"
+              className="mt-9 inline-flex items-center gap-2 rounded-2xl bg-primary px-8 py-4 text-base font-black text-white shadow-lg shadow-primary/15 transition-all hover:bg-primary-container active:scale-[0.98]"
+            >
+              Start as a creator
+              <ArrowRight size={19} />
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* 🔗 AFFILIATE / EARNING SYSTEM */}
-      <section className="max-w-7xl mx-auto px-6">
-        <div className="bg-secondary rounded-[3rem] p-8 md:p-16 lg:p-24 text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-black/10 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
-          
-          <div className="relative z-10 text-center max-w-4xl mx-auto">
-            <h2 className="font-headline font-black text-2xl md:text-4xl mb-8 leading-tight">Earn Daily Even Without <br/><span className="text-secondary-fixed-dim italic">Creating Courses</span></h2>
-            <p className="text-white/80 text-base md:text-lg mb-12 leading-relaxed max-w-3xl mx-auto font-medium">
-              Not a creator? No problem. Share any course using your personalized link and earn <span className="text-white font-black underline decoration-secondary-fixed-dim underline-offset-8">up to 30% commission</span> every time someone buys.
+      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
+        <div className="grid gap-5 rounded-[2rem] bg-secondary p-6 text-white md:grid-cols-[1fr_0.88fr] md:p-10 lg:p-14">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-widest text-white">
+              <Zap size={14} />
+              Affiliate earning
+            </div>
+            <h2 className="mt-6 font-headline text-3xl font-black leading-tight tracking-tight md:text-5xl">
+              Earn by helping people find the right course.
+            </h2>
+            <p className="mt-5 max-w-2xl text-base font-medium leading-relaxed text-white/78">
+              Share courses with your audience and earn commissions when learners subscribe through your link.
             </p>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-16">
-              {[
-                { label: "No inventory needed", icon: ShieldCheck, glow: "indigo" },
-                { label: "Instant Payouts", icon: Zap, glow: "amber" },
-                { label: "Zero stress setup", icon: TrendingUp, glow: "emerald" }
-              ].map((item, i) => (
-                <GlowCard 
-                  key={i} 
-                  glowColor="blue"
-                  customSize={true}
-                  className="bg-white/10 backdrop-blur-xl p-8 md:p-10 rounded-[2rem] md:rounded-[2.5rem] border border-white/20 flex flex-col items-center gap-6 h-auto transition-transform hover:-translate-y-2 duration-500"
-                >
-                  <div className="w-14 h-14 md:w-16 md:h-16 bg-white rounded-xl md:rounded-2xl flex items-center justify-center text-secondary">
-                    <item.icon size={28} className="md:w-8 md:h-8" />
-                  </div>
-                  <span className="font-black text-base md:text-lg tracking-tight leading-tight">{item.label}</span>
-                </GlowCard>
-              ))}
-            </div>
-            
-            <div className="flex flex-col items-center gap-8">
-              <p className="text-xl md:text-2xl font-headline font-black italic color-secondary-fixed-dim drop-shadow-md">
-                Your network is your net worth.
-              </p>
-              <Link 
-                to="/dashboard" 
-                className="inline-flex bg-white text-secondary px-10 md:px-14 py-4 md:py-5 rounded-xl md:rounded-2xl font-black text-lg md:text-xl hover:scale-105 active:scale-95 transition-all"
-              >
-                Start Earning Now →
-              </Link>
-            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3 md:grid-cols-1">
+            {['No inventory', 'Fast setup', 'Trackable links'].map((label) => (
+              <div key={label} className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
+                <CheckCircle2 size={20} className="shrink-0 text-secondary-fixed-dim" />
+                <span className="text-sm font-black">{label}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* 🌍 GLOBAL POSITIONING */}
-      <section className="max-w-7xl mx-auto px-6 text-center py-12">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-surface-container-high rounded-full text-primary text-xs font-bold mb-6">
+      <section className="mx-auto max-w-7xl px-4 py-10 text-center sm:px-6">
+        <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-surface-container-high px-4 py-2 text-xs font-bold uppercase tracking-widest text-primary">
           <Globe size={14} />
-          GLOBAL REACH
+          Global reach
         </div>
-        <h2 className="font-headline font-bold text-3xl text-primary mb-6">Built in Nigeria. Open to the World.</h2>
-        <p className="text-on-surface-variant text-lg max-w-3xl mx-auto leading-relaxed">
-          Nigeria AI School is designed to empower Africans and connect them to global opportunities. Learn from anywhere. Sell to anywhere. Earn from everywhere.
+        <h2 className="font-headline text-3xl font-black tracking-tight text-primary md:text-4xl">Built in Nigeria. Open to the world.</h2>
+        <p className="mx-auto mt-5 max-w-3xl text-base font-medium leading-relaxed text-on-surface-variant md:text-lg">
+          Learn from anywhere, sell to anywhere, and build skills that travel beyond borders.
         </p>
       </section>
 
-      {/* 🏆 SOCIAL PROOF */}
-      <section className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-16">
-          <h2 className="font-headline font-bold text-3xl text-primary mb-4">Trusted by Future Builders</h2>
-          <p className="text-on-surface-variant text-lg">Thousands of learners and creators are already building their future with Nigeria AI School.</p>
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+        <div className="mb-10 text-center">
+          <p className="text-xs font-black uppercase tracking-widest text-secondary">Community</p>
+          <h2 className="mt-3 font-headline text-3xl font-black tracking-tight text-primary">Trusted by future builders</h2>
         </div>
-        <div className="flex flex-wrap justify-center gap-12">
+        <div className="flex flex-wrap justify-center gap-10">
           {CREATORS.map((creator) => (
-            <motion.div 
-              key={creator.id}
-              whileHover={{ y: -5 }}
-              className="flex flex-col items-center group"
-            >
+            <motion.div key={creator.id} whileHover={{ y: -5 }} className="flex flex-col items-center">
               <div className="relative mb-4">
-                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-surface-container p-1 group-hover:border-secondary transition-colors duration-300">
-                  <img 
-                    src={creator.avatar} 
-                    alt={creator.name} 
-                    className="w-full h-full rounded-full object-cover"
-                    referrerPolicy="no-referrer"
-                  />
+                <div className="h-28 w-28 overflow-hidden rounded-full border-4 border-white p-1 shadow-lg shadow-primary/10">
+                  <img src={creator.avatar} alt={creator.name} className="h-full w-full rounded-full object-cover" referrerPolicy="no-referrer" />
                 </div>
                 {creator.isVerified && (
-                  <div className="absolute bottom-0 right-0 w-8 h-8 bg-secondary-fixed-dim rounded-full flex items-center justify-center border-2 border-white">
+                  <div className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-secondary-fixed-dim">
                     <ShieldCheck size={16} className="text-white" fill="currentColor" />
                   </div>
                 )}
               </div>
-              <h4 className="font-headline font-bold text-lg text-primary">{creator.name}</h4>
-              <p className="text-sm text-secondary font-medium">{creator.role}</p>
+              <h4 className="font-headline text-lg font-black text-primary">{creator.name}</h4>
+              <p className="text-sm font-bold text-secondary">{creator.role}</p>
             </motion.div>
           ))}
         </div>
       </section>
 
-      {/* 🚀 FINAL CTA SECTION */}
-      <section className="max-w-7xl mx-auto px-6">
-        <div className="bg-primary rounded-[3rem] p-8 md:p-12 lg:p-24 text-center relative overflow-hidden">
-          <div className="absolute inset-0 opacity-10 pointer-events-none">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
+      <section className="mx-auto max-w-7xl px-4 sm:px-6">
+        <GlowCard glowColor="green" customSize className="overflow-hidden rounded-[2rem] border border-primary/10 bg-primary p-8 text-center md:p-14 lg:p-20">
+          <div className="relative z-10 mx-auto max-w-3xl">
+            <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 text-white">
+              <GraduationCap size={28} />
+            </div>
+            <h2 className="font-headline text-3xl font-black tracking-tight text-white md:text-5xl">Start building your AI advantage.</h2>
+            <p className="mx-auto mt-5 max-w-2xl text-base font-medium leading-relaxed text-white/72 md:text-lg">
+              Whether you want to learn, teach, or earn from knowledge, Nigeria AI School gives you a focused place to begin.
+            </p>
+            <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
+              <Link to="/courses" className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-7 py-4 text-base font-black text-primary transition-all hover:-translate-y-0.5 active:scale-[0.98]">
+                Start learning
+                <ArrowRight size={19} />
+              </Link>
+              <Link to="/signup" className="inline-flex items-center justify-center gap-2 rounded-2xl bg-secondary px-7 py-4 text-base font-black text-white transition-all hover:-translate-y-0.5 active:scale-[0.98]">
+                Create account
+                <Users size={19} />
+              </Link>
+            </div>
           </div>
-          <h2 className="font-headline font-bold text-2xl md:text-4xl text-white mb-8 relative z-10">Your Future in Tech Starts Here</h2>
-          <p className="text-white/70 text-lg md:text-xl mb-12 max-w-2xl mx-auto relative z-10">
-            Whether you want to learn, teach, or earn — this is your platform. Don’t just watch the future happen. Be part of it.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4 md:gap-6 relative z-10">
-            <Link 
-              to="/courses" 
-              className="bg-white text-primary px-8 md:px-10 py-4 md:py-5 rounded-xl md:rounded-2xl font-bold text-lg md:text-xl hover:scale-105 transition-all"
-            >
-              Start Learning Now
-            </Link>
-            <Link 
-              to="/become-creator" 
-              className="bg-secondary text-white px-8 md:px-10 py-4 md:py-5 rounded-xl md:rounded-2xl font-bold text-lg md:text-xl hover:scale-105 transition-all"
-            >
-              Become a Creator
-            </Link>
-          </div>
-        </div>
+        </GlowCard>
       </section>
     </div>
   );
-}
-
-function CheckCircle2({ size, className }: { size?: number, className?: string }) {
-  return <ShieldCheck size={size} className={className} />;
 }

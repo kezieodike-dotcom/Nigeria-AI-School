@@ -18,6 +18,7 @@ export interface Course {
   isNew?: boolean;
   videoUrl?: string;
   type?: 'video' | 'text';
+  assignment?: import('./lib/assignments').CourseAssignment;
 }
 
 export interface Creator {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Search, User, LogOut, LayoutDashboard, ShieldCheck } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, ShieldCheck, Instagram, Linkedin, PlaySquare, Twitter } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -15,9 +15,10 @@ export default function Layout({ children }: LayoutProps) {
 
   const navLinks = [
     { name: 'Courses', href: '/courses' },
+    { name: 'Blog', href: '/blog' },
+    { name: 'Socials', href: '/socials' },
     { name: 'How it Works', href: '/how-it-works' },
     { name: 'About Us', href: '/about' },
-    { name: 'Contact Us', href: '/contact-us' },
   ];
 
   const dashboardHref = profile?.role === 'admin'
@@ -184,17 +185,20 @@ export default function Layout({ children }: LayoutProps) {
           </div>
 
           <div>
-            <h4 className="text-xs font-bold text-primary uppercase tracking-widest mb-6 font-headline">Opportunities</h4>
+            <h4 className="text-xs font-bold text-primary uppercase tracking-widest mb-6 font-headline">Community</h4>
             <ul className="space-y-4">
+              <li><Link to="/blog" className="text-sm text-on-surface-variant hover:text-primary transition-colors">Blog</Link></li>
+              <li><Link to="/socials" className="text-sm text-on-surface-variant hover:text-primary transition-colors">Socials</Link></li>
               <li><Link to="#" className="text-sm text-on-surface-variant hover:text-primary transition-colors">Affiliate Program</Link></li>
               <li><Link to="/become-creator" className="text-sm text-on-surface-variant hover:text-primary transition-colors">Become a Creator</Link></li>
-              <li><Link to="#" className="text-sm text-on-surface-variant hover:text-primary transition-colors">Job Board</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-xs font-bold text-primary uppercase tracking-widest mb-6 font-headline">Legal</h4>
+            <h4 className="text-xs font-bold text-primary uppercase tracking-widest mb-6 font-headline">Company</h4>
             <ul className="space-y-4">
+              <li><Link to="/about" className="text-sm text-on-surface-variant hover:text-primary transition-colors">About Us</Link></li>
+              <li><Link to="/contact-us" className="text-sm text-on-surface-variant hover:text-primary transition-colors">Contact Us</Link></li>
               <li><Link to="#" className="text-sm text-on-surface-variant hover:text-primary transition-colors">Terms of Service</Link></li>
               <li><Link to="#" className="text-sm text-on-surface-variant hover:text-primary transition-colors">Privacy Policy</Link></li>
             </ul>
@@ -213,12 +217,18 @@ export default function Layout({ children }: LayoutProps) {
           <p className="text-xs text-on-surface-variant">
             © 2024 Nigeria AI School — Learn. Create. Earn.
           </p>
-          <div className="flex gap-6">
-            <Link to="#" className="text-on-surface-variant hover:text-primary transition-colors">
-              <Search size={18} />
+          <div className="flex gap-5">
+            <Link to="/socials" className="text-on-surface-variant hover:text-primary transition-colors" aria-label="YouTube">
+              <PlaySquare size={18} />
             </Link>
-            <Link to="#" className="text-on-surface-variant hover:text-primary transition-colors">
-              <User size={18} />
+            <Link to="/socials" className="text-on-surface-variant hover:text-primary transition-colors" aria-label="Instagram">
+              <Instagram size={18} />
+            </Link>
+            <Link to="/socials" className="text-on-surface-variant hover:text-primary transition-colors" aria-label="LinkedIn">
+              <Linkedin size={18} />
+            </Link>
+            <Link to="/socials" className="text-on-surface-variant hover:text-primary transition-colors" aria-label="X">
+              <Twitter size={18} />
             </Link>
           </div>
         </div>

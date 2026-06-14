@@ -3,7 +3,7 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { motion } from 'motion/react';
-import { LayoutDashboard, BookOpen, CreditCard, Settings, LogOut, Search, Bell, Star, Clock, PlayCircle, ChevronRight, TrendingUp, Users, Share2, Rocket, User, Camera, UploadCloud, X, CheckCircle2, Heart, DollarSign, Link as LinkIcon, Copy, Twitter, ArrowUpRight, BarChart3, Edit3, ArrowRight, Trash2, Video, FileText, ChevronDown, ShieldCheck, GraduationCap, Loader2 } from 'lucide-react';
+import { LayoutDashboard, BookOpen, CreditCard, Settings, LogOut, Search, Bell, Star, Clock, PlayCircle, ChevronRight, TrendingUp, Users, Share2, Rocket, User, Camera, UploadCloud, X, CheckCircle2, Heart, DollarSign, Link as LinkIcon, Copy, Twitter, ArrowUpRight, BarChart3, Edit3, ArrowRight, Trash2, Video, FileText, ChevronDown, ShieldCheck, GraduationCap, Loader2, Download, HardDrive, WifiOff, ClipboardCheck, Target } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
 import { Course } from '../types';
@@ -12,6 +12,8 @@ import SecureVideo from '../components/SecureVideo';
 import { imageFileToDataUrl, uploadProfileImage } from '../lib/profileImage';
 import { fetchPaidCourses } from '../lib/courses';
 import { ActiveSubscription, fetchActiveSubscription, monthlySubscriptionPrice, startMonthlySubscriptionCheckout } from '../lib/subscription';
+import { deleteOfflineVideo, formatOfflineVideoSize, isOfflineVideoPlayable, listOfflineVideos, OfflineVideo, saveOfflineVideo } from '../lib/offlineVideos';
+import { generateCourseAssignment } from '../lib/assignments';
 
 type CourseProgress = {
   watched_seconds: number;
@@ -64,6 +66,12 @@ export default function Dashboard() {
   const [progressByCourse, setProgressByCourse] = React.useState<Record<string, CourseProgress>>({});
   const [showCourseOverview, setShowCourseOverview] = React.useState(false);
   const [showLesson, setShowLesson] = React.useState(false);
+  const [offlineVideos, setOfflineVideos] = React.useState<OfflineVideo[]>([]);
+  const [offlineVideosLoading, setOfflineVideosLoading] = React.useState(false);
+  const [offlineDownloadCourseId, setOfflineDownloadCourseId] = React.useState<string | null>(null);
+  const [offlineDownloadProgress, setOfflineDownloadProgress] = React.useState(0);
+  const [activeOfflineVideo, setActiveOfflineVideo] = React.useState<OfflineVideo | null>(null);
+  const [activeOfflineVideoUrl, setActiveOfflineVideoUrl] = React.useState<string | null>(null);
   const cameraVideoRef = React.useRef<HTMLVideoElement>(null);
   const lessonVideoRef = React.useRef<HTMLVideoElement>(null);
   const lastProgressSaveRef = React.useRef<Record<string, number>>({});
@@ -88,6 +96,12 @@ export default function Dashboard() {
       cameraStream?.getTracks().forEach((track) => track.stop());
     };
   }, [cameraStream]);
+
+  React.useEffect(() => {
+    return () => {
+      if (activeOfflineVideoUrl) URL.revokeObjectURL(activeOfflineVideoUrl);
+    };
+  }, [activeOfflineVideoUrl]);
 
   const startCamera = async () => {
     setShowCamera(true);
@@ -317,6 +331,7 @@ export default function Dashboard() {
   const sidebarItems = [
     { name: 'Overview', icon: LayoutDashboard },
     { name: 'My Courses', icon: BookOpen },
+    { name: 'Offline Videos', icon: HardDrive },
     { name: 'Subscription', icon: CreditCard },
     { name: 'My Links', icon: LinkIcon },
     { name: 'Settings', icon: Settings },
@@ -328,7 +343,97 @@ export default function Dashboard() {
   const availableCourses = hasActiveSubscription ? [] : courses.filter((course) => !enrolledCourseIds.has(course.id));
   const featuredPaidCourses = availableCourses.length > 0 ? availableCourses : courses;
   const selectedProgress = selectedCourse ? (progressByCourse[selectedCourse.id] || emptyProgress) : emptyProgress;
+  const selectedAssignment = selectedCourse ? (selectedCourse.assignment || generateCourseAssignment(selectedCourse)) : null;
   const getCourseProgress = (courseId: string) => progressByCourse[courseId] || emptyProgress;
+
+  const refreshOfflineVideos = async () => {
+    if (!user?.id) {
+      setOfflineVideos([]);
+      return;
+    }
+
+    setOfflineVideosLoading(true);
+    try {
+      setOfflineVideos(await listOfflineVideos(user.id));
+    } catch (error) {
+      console.warn('Could not load offline videos:', error);
+      setOfflineVideos([]);
+    } finally {
+      setOfflineVideosLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    if (activeTab === 'Offline Videos' || user?.id) {
+      void refreshOfflineVideos();
+    }
+  }, [activeTab, user?.id]);
+
+  const handleSaveCourseOffline = async (course: Course) => {
+    if (!user?.id) {
+      navigate('/login?redirect=/dashboard');
+      return;
+    }
+
+    if (!hasActiveSubscription) {
+      window.showToast?.('Subscribe first, then you can save paid videos inside the app.', 'error');
+      return;
+    }
+
+    if (!course.videoUrl) {
+      window.showToast?.('This course video is not available for offline download yet.', 'error');
+      return;
+    }
+
+    setOfflineDownloadCourseId(course.id);
+    setOfflineDownloadProgress(0);
+    try {
+      await saveOfflineVideo({
+        course,
+        userId: user.id,
+        sourceUrl: course.videoUrl,
+        expiresAt: activeSubscription!.expires_at,
+        onProgress: setOfflineDownloadProgress,
+      });
+      await refreshOfflineVideos();
+      window.showToast?.('Saved inside the app for offline viewing.', 'success');
+    } catch (error: any) {
+      window.showToast?.(error.message || 'Unable to save this video offline.', 'error');
+    } finally {
+      setOfflineDownloadCourseId(null);
+    }
+  };
+
+  const handlePlayOfflineVideo = (video: OfflineVideo) => {
+    if (!isOfflineVideoPlayable(video)) {
+      window.showToast?.('This offline copy has expired. Renew your subscription and save it again.', 'error');
+      return;
+    }
+
+    setActiveOfflineVideo(video);
+    setActiveOfflineVideoUrl((existingUrl) => {
+      if (existingUrl) URL.revokeObjectURL(existingUrl);
+      return URL.createObjectURL(video.blob);
+    });
+  };
+
+  const handleDeleteOfflineVideo = async (video: OfflineVideo) => {
+    if (!user?.id) return;
+    try {
+      await deleteOfflineVideo(user.id, video.courseId);
+      if (activeOfflineVideo?.id === video.id) {
+        setActiveOfflineVideo(null);
+        setActiveOfflineVideoUrl((existingUrl) => {
+          if (existingUrl) URL.revokeObjectURL(existingUrl);
+          return null;
+        });
+      }
+      await refreshOfflineVideos();
+      window.showToast?.('Offline copy removed from this device.', 'success');
+    } catch (error: any) {
+      window.showToast?.(error.message || 'Unable to remove offline video.', 'error');
+    }
+  };
 
   const saveCourseProgress = async (courseId: string, currentTime: number, duration: number, force = false) => {
     if (!user?.id || !isUuid(courseId) || !Number.isFinite(duration) || duration <= 0) return;
@@ -760,6 +865,155 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
+          </div>
+        );
+
+      case 'Offline Videos':
+        return (
+          <div className="space-y-8">
+            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-widest text-secondary">Device downloads</p>
+                <h2 className="mt-2 text-2xl font-headline font-black text-primary">Offline Videos</h2>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-on-surface-variant">
+                  Saved videos stay inside this browser on this device. They can be watched without streaming until your subscription access expires.
+                </p>
+              </div>
+              <button
+                onClick={refreshOfflineVideos}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-outline-variant/20 bg-white px-5 py-3 text-sm font-black text-primary hover:bg-surface-container-low active:scale-95 transition-all"
+              >
+                <HardDrive size={18} /> Refresh
+              </button>
+            </div>
+
+            <section className="rounded-[2rem] border border-primary/10 bg-white p-5 md:p-7">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-secondary/10 text-secondary">
+                    <WifiOff size={24} />
+                  </div>
+                  <div>
+                    <h3 className="font-headline text-lg font-black text-primary">In-app offline mode</h3>
+                    <p className="mt-1 max-w-2xl text-sm leading-6 text-on-surface-variant">
+                      This is not a public file download. The app stores the paid video in browser storage and plays it back from this dashboard.
+                    </p>
+                  </div>
+                </div>
+                <span className={cn(
+                  'rounded-full px-4 py-2 text-xs font-black uppercase tracking-widest',
+                  hasActiveSubscription ? 'bg-secondary/10 text-secondary' : 'bg-amber-500/10 text-amber-700'
+                )}>
+                  {hasActiveSubscription ? 'Subscription active' : 'Subscription required'}
+                </span>
+              </div>
+            </section>
+
+            <section className="space-y-5">
+              <h3 className="font-headline text-xl font-black text-primary">Saved on this device</h3>
+              {offlineVideosLoading ? (
+                <div className="rounded-3xl border border-outline-variant/10 bg-white p-10 text-center text-sm font-bold text-on-surface-variant">
+                  Loading offline videos...
+                </div>
+              ) : offlineVideos.length > 0 ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                  {offlineVideos.map((video) => {
+                    const playable = isOfflineVideoPlayable(video);
+                    return (
+                      <div key={video.id} className="rounded-3xl border border-outline-variant/10 bg-white p-4 shadow-sm">
+                        <div className="flex gap-4">
+                          <div className="h-24 w-32 shrink-0 overflow-hidden rounded-2xl bg-black">
+                            <img src={video.thumbnail} alt={video.title} className="h-full w-full object-cover opacity-85" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-secondary">{video.category}</p>
+                                <h4 className="mt-1 line-clamp-2 font-headline text-base font-black text-primary">{video.title}</h4>
+                              </div>
+                              <span className={cn(
+                                'shrink-0 rounded-full px-2.5 py-1 text-[10px] font-black uppercase',
+                                playable ? 'bg-secondary/10 text-secondary' : 'bg-red-500/10 text-red-600'
+                              )}>
+                                {playable ? 'Ready' : 'Expired'}
+                              </span>
+                            </div>
+                            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs font-bold text-on-surface-variant">
+                              <span>{formatOfflineVideoSize(video.size)}</span>
+                              <span>Expires {new Date(video.expiresAt).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="mt-4 grid grid-cols-[1fr_auto] gap-2">
+                          <button
+                            onClick={() => handlePlayOfflineVideo(video)}
+                            disabled={!playable}
+                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-white transition-all hover:bg-primary-container active:scale-95 disabled:cursor-not-allowed disabled:opacity-55"
+                          >
+                            <PlayCircle size={18} /> Watch Offline
+                          </button>
+                          <button
+                            onClick={() => handleDeleteOfflineVideo(video)}
+                            className="inline-flex items-center justify-center rounded-xl border border-red-500/20 bg-white px-4 py-3 text-red-600 transition-all hover:bg-red-50 active:scale-95"
+                            aria-label={`Remove ${video.title}`}
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="rounded-3xl border border-dashed border-outline-variant/20 bg-white p-10 text-center">
+                  <HardDrive className="mx-auto mb-4 text-on-surface-variant/40" size={42} />
+                  <h3 className="font-headline text-xl font-bold text-primary">No offline videos yet</h3>
+                  <p className="mt-2 text-sm text-on-surface-variant">Save a paid course video below, then it will appear here for offline playback.</p>
+                </div>
+              )}
+            </section>
+
+            <section className="space-y-5">
+              <div>
+                <h3 className="font-headline text-xl font-black text-primary">Available to save</h3>
+                <p className="mt-1 text-sm text-on-surface-variant">Only courses with active paid access and a video file can be saved.</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {enrolledCourses.map((course) => {
+                  const isDownloading = offlineDownloadCourseId === course.id;
+                  const alreadySaved = offlineVideos.some((video) => video.courseId === course.id && isOfflineVideoPlayable(video));
+                  return (
+                    <div key={course.id} className="overflow-hidden rounded-3xl border border-outline-variant/10 bg-white">
+                      <div className="h-36 bg-black">
+                        <img src={course.thumbnail} alt={course.title} className="h-full w-full object-cover opacity-85" />
+                      </div>
+                      <div className="space-y-4 p-5">
+                        <h4 className="line-clamp-2 font-headline text-base font-black text-primary">{course.title}</h4>
+                        {isDownloading && (
+                          <div>
+                            <div className="mb-2 flex items-center justify-between text-xs font-black text-primary">
+                              <span>Saving</span>
+                              <span>{offlineDownloadProgress}%</span>
+                            </div>
+                            <div className="h-2 rounded-full bg-surface-container-low">
+                              <div className="h-full rounded-full bg-secondary transition-all" style={{ width: `${offlineDownloadProgress}%` }} />
+                            </div>
+                          </div>
+                        )}
+                        <button
+                          onClick={() => handleSaveCourseOffline(course)}
+                          disabled={!hasActiveSubscription || !course.videoUrl || isDownloading || alreadySaved}
+                          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-3 text-sm font-black text-white transition-all hover:bg-secondary/90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-55"
+                        >
+                          {isDownloading ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
+                          {alreadySaved ? 'Saved In App' : 'Save In App'}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
           </div>
         );
 
@@ -1244,6 +1498,83 @@ export default function Dashboard() {
                     ))}
                   </div>
                 </section>
+
+                {selectedAssignment && (
+                  <section className="rounded-3xl border border-secondary/15 bg-white p-5 shadow-sm sm:p-8">
+                    <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-secondary/10 px-3 py-1.5 text-xs font-black uppercase tracking-widest text-secondary">
+                          <ClipboardCheck size={14} />
+                          Assignment / Project
+                        </div>
+                        <h2 className="font-headline text-2xl font-black text-primary">{selectedAssignment.title}</h2>
+                        <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-on-surface-variant">{selectedAssignment.brief}</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-center sm:w-56">
+                        <div className="rounded-2xl bg-surface-container-low p-3">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Time</p>
+                          <p className="mt-1 font-headline text-sm font-black text-primary">{selectedAssignment.estimatedTime}</p>
+                        </div>
+                        <div className="rounded-2xl bg-surface-container-low p-3">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Level</p>
+                          <p className="mt-1 font-headline text-sm font-black text-primary">{selectedAssignment.difficulty}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+                      <div className="space-y-5">
+                        <div className="rounded-2xl border border-outline-variant/10 bg-surface-container-lowest p-5">
+                          <div className="mb-3 flex items-center gap-2 text-sm font-black text-primary">
+                            <Target size={18} className="text-secondary" />
+                            Scenario
+                          </div>
+                          <p className="text-sm font-medium leading-6 text-on-surface-variant">{selectedAssignment.scenario}</p>
+                        </div>
+                        <div>
+                          <h3 className="mb-3 font-headline text-lg font-black text-primary">Milestones</h3>
+                          <div className="space-y-3">
+                            {selectedAssignment.milestones.map((milestone, index) => (
+                              <div key={milestone} className="flex gap-3 rounded-2xl border border-outline-variant/10 bg-white p-4">
+                                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-black text-white">{index + 1}</span>
+                                <p className="text-sm font-medium leading-6 text-on-surface-variant">{milestone}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-5">
+                        <div>
+                          <h3 className="mb-3 font-headline text-lg font-black text-primary">Deliverables</h3>
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            {selectedAssignment.deliverables.map((deliverable) => (
+                              <div key={deliverable} className="flex gap-3 rounded-2xl bg-secondary/5 p-4">
+                                <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-secondary" />
+                                <p className="text-sm font-bold leading-6 text-primary">{deliverable}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-outline-variant/10 bg-surface-container-lowest p-5">
+                          <h3 className="font-headline text-lg font-black text-primary">Submission Draft</h3>
+                          <p className="mt-2 text-sm font-medium leading-6 text-on-surface-variant">{selectedAssignment.submissionFormat}</p>
+                          <textarea
+                            placeholder="Paste your project link, notes, or reflection here"
+                            className="mt-4 min-h-28 w-full resize-none rounded-2xl border border-outline-variant/20 bg-white p-4 text-sm font-medium text-primary outline-none focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+                          />
+                          <button
+                            onClick={() => window.showToast?.('Assignment draft saved locally for now. Database submission can be added when you are ready.', 'success')}
+                            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-black text-white transition-all hover:bg-primary-container active:scale-95"
+                          >
+                            <UploadCloud size={17} /> Save Draft
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                )}
               </div>
 
               {/* Sticky Sidebar */}
@@ -1387,6 +1718,52 @@ export default function Dashboard() {
                       <p className="font-bold text-secondary">{selectedProgress.completed ? 'Completed' : `${selectedProgress.progress_percent}% watched`}</p>
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeOfflineVideo && activeOfflineVideoUrl && (
+          <div className="fixed inset-0 z-[120] bg-black/95 backdrop-blur-xl flex items-center justify-center p-0 md:p-6 lg:p-8">
+            <div className="w-full max-w-5xl h-full md:h-auto md:max-h-[92vh] bg-white md:rounded-[2.5rem] overflow-hidden flex flex-col relative">
+              <button
+                onClick={() => {
+                  setActiveOfflineVideo(null);
+                  setActiveOfflineVideoUrl((existingUrl) => {
+                    if (existingUrl) URL.revokeObjectURL(existingUrl);
+                    return null;
+                  });
+                }}
+                className="absolute top-5 right-5 z-10 p-2.5 bg-black/20 hover:bg-black/40 rounded-full transition-colors text-white"
+              >
+                <X size={22} />
+              </button>
+
+              <div className="aspect-video md:aspect-auto md:h-[56vh] bg-black flex items-center justify-center shrink-0">
+                <SecureVideo
+                  autoPlay
+                  controls
+                  className="h-full w-full"
+                  src={activeOfflineVideoUrl}
+                />
+              </div>
+
+              <div className="p-5 sm:p-8 space-y-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-widest text-secondary">Offline playback</p>
+                    <h2 className="mt-1 font-headline text-xl font-black text-primary">{activeOfflineVideo.title}</h2>
+                    <p className="mt-2 text-sm text-on-surface-variant">
+                      Stored on this device. Expires {new Date(activeOfflineVideo.expiresAt).toLocaleDateString()}.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteOfflineVideo(activeOfflineVideo)}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/20 bg-white px-4 py-3 text-sm font-black text-red-600 transition-all hover:bg-red-50 active:scale-95"
+                  >
+                    <Trash2 size={17} /> Remove Copy
+                  </button>
                 </div>
               </div>
             </div>

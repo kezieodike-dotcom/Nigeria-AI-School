@@ -21,12 +21,15 @@ View your app in AI Studio: https://ai.studio/apps/ec3039e2-433c-46bf-8414-64f83
 
 ## Paystack Setup
 
-1. Apply the Supabase migration in `supabase/migrations/20260522231500_add_paystack_payments.sql`.
-2. Set the server-only Edge Function secret:
-   `supabase secrets set PAYSTACK_SECRET_KEY=sk_test_your_key`
+1. Apply all Supabase migrations in `supabase/migrations`.
+2. Set the server-only Edge Function secret to your Paystack Live Secret Key:
+   `supabase secrets set PAYSTACK_SECRET_KEY=sk_live_your_key`
 3. Deploy the functions:
    `supabase functions deploy create-paystack-checkout`
+   `supabase functions deploy create-cart-paystack-checkout`
+   `supabase functions deploy create-subscription-paystack-checkout`
    `supabase functions deploy verify-paystack-payment`
    `supabase functions deploy paystack-webhook`
 4. In Paystack, set the webhook URL to:
    `https://your-project-ref.supabase.co/functions/v1/paystack-webhook`
+5. Make sure your Paystack business is activated for Live Mode and your webhook is configured in Paystack's Live Mode settings.
